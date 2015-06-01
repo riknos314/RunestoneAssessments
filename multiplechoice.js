@@ -34,8 +34,8 @@ MultipleChoice.prototype.init = function(opts) {       //Finish later
 
     this.multipleanswers = false
     this.divid = orig.id;
-
-    if ($(this).data('multipleanswers') === "true") {
+    console.log($(this.origElem).data('multipleanswers'))
+    if ($(this.origElem).data('multipleanswers') === true) {
         this.multipleanswers = true;
     }
 
@@ -55,10 +55,6 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
 	var delimiter = document.getElementById(firstanswerid).outerHTML;
 	var fulltext = $(this.origElem).html();
 	var temp = fulltext.split(delimiter);
-    console.log(firstanswerid);
-    console.log(delimiter);
-    console.log(fulltext);
-    console.log(temp);
 	this.question = temp[0];
 
 }
@@ -74,7 +70,6 @@ MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects an
 		}
 		var answer_text = $(this).text();
 		var answer_object = {id : answer_id, correct : is_correct, content : answer_text};
-        console.log(answer_object);
 		_this.answerList.push(answer_object);
 	});
 }
@@ -97,6 +92,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     var newForm = document.createElement("form");
     formDiv.appendChild(newForm);
     var input_type = "radio";
+    console.log(this.multipleanswers);
     if (this.multipleanswers) {
         input_type = "checkbox";
     }
