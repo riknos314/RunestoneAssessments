@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="bower_components/jquery-ui/themes/base/jquery-ui.css"/>
+	<script src="bower_components/jquery/dist/jquery.js"></script>
+	<script src="bower_components/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="multiplechoice.js"></script>
+
+</head>
+<body>
+	<ul data-component="multiplechoice" data-multipleanswers="false">
+	The Question can go right here.
+		<li data-component="answer" id="123" data-correct>Answer one</li>
+		<li data-component="feedback" for="123">feedback for one</li>
+
+		<li data-component="answer" id="456" data-correct>Answer Two</li>
+		<li data-component="feedback" for="456">feedback for Two</li>
+	</ul>
+</body>
+
+</html>
