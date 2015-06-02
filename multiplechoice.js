@@ -86,7 +86,7 @@ MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tupl
 }
 
 
-MultipleChoice.prototype.createCorrectList = function() {
+MultipleChoice.prototype.createCorrectList = function() {   //Creates array that holds the ID's of correct answers
 
     for (var i=0; i < this.answerList.length; i++) {
         if (this.answerList[i].correct) {
@@ -119,14 +119,14 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         input_type = "checkbox";
     }
 
-    for (var i=0; i < this.answerList.length; i++){
+    for (var i=0; i < this.answerList.length; i++){       //Create form input elements
         var input = document.createElement("input");
         var label = document.createElement("label");
         var br = document.createElement("br");
         input.type = input_type;
         input.name = "group1";
         input.value = String(i);
-        var tmpid = String(this.divid) + "_opt_" + String(i);
+        var tmpid = String(this.divid) + "_opt_" + String(i);    //what makes id's unique is the index of where it is in answerList
         input.id = tmpid;
         $(label).attr('for', String(tmpid));
         $(label).text(this.answerList[i].content);
@@ -137,14 +137,45 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         newForm.appendChild(br);
     }
 
-    if (this.multipleanswers) {
+    var butt = document.createElement("button");
+    var tmpid = this.origElem.id;
+    var stringsArray = this.feedbackList;
 
+    butt.textContent = "Check Me";
+    $(butt).attr({
+            "class" : "btn btn-success",
+            "name" : "do answer",
+        })
+
+
+    if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
+        var expectedArray = [];
+        _this = this;
+        for (var i=0; i<_this.answerList.length; i++) {
+            var tempAnswerId = _this.answerList[i].id;
+            console.log(tempAnswerId);
+            var notFound = true
+            var j = 0;
+            while (notFound && j < _this.correctList.length) {
+                if (tempAnswerId == _this.correctList[j]) {
+                    expectedArray.push(i);
+                    notFound = false;
+                }
+                j++;
+            }
+        }
+
+        var expectedString = expectedArray.join();
+        console.log(tmpid);
+        console.log(expectedString);
+        console.log(stringsArray);
+
+        butt.onclick = function() {
+            checkMCMAStorage(tmpid,expectedString,stringsArray);   //finish
+        }
 
     } else {
-        var butt = document.createElement("button");
-        var tmpid = this.origElem.id;
         var found = false;
-        butt.textContent = "Check Me";
         var i=0;
         while (!found) {
             if (this.correctList[0] == this.answerList[i].id){
@@ -153,23 +184,16 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
             i++;
         }
         var correctAnswerIndex = i-1;
-        var stringsArray = this.feedbackList;
-        console.log(tmpid);
-        console.log(correctAnswerIndex);
-        console.log(stringsArray);
 
 
-        $(butt).attr({
-            "class" : "btn btn-success",
-            "name" : "do answer",
-        })
+        
         butt.onclick = function() {
             checkMCMFStorage(tmpid,correctAnswerIndex,stringsArray);
         };
 
-        formDiv.appendChild(butt);
-
     }
+    newForm.appendChild(butt);
+ 
     var br = document.createElement("br");
     formDiv.appendChild(br);
     formDiv.appendChild(feedbackDiv);

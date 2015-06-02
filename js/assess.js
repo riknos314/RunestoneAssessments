@@ -382,18 +382,18 @@ var checkMCMAStorage = function (divid, expected, feedbackArray) {
     var storage_arr = new Array();
     storage_arr.push(givenArray);
     storage_arr.push(expected);
-    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
+    //localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
 
     // log the answer
     var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
         (correctCount == correctArray.length ? 'correct' : 'no');
-    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
+    //logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
 
     // give the user feedback
     feedBackMCMA('#' + divid + '_feedback', correctCount,
         correctArray.length, givenArray.length, feedback);
 
-    document.getElementById(divid + '_bcomp').disabled = false;
+    //document.getElementById(divid + '_bcomp').disabled = false;
 };
 
 var checkMCMFStorage = function (divid, expected, feedbackArray) {
