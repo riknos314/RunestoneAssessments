@@ -48,6 +48,7 @@ MultipleChoice.prototype.init = function(opts) {       //Finish later
 	this.findFeedbacks();
     this.createCorrectList();
     this.createMCForm();
+    this.restoreLocalAnswers();
 
 }
 
@@ -104,6 +105,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     formDiv.id = this.divid;
     var newForm = document.createElement("form");
     var feedbackDiv = document.createElement("div");
+    var origid = this.origElem.id;
 
     newForm.id = this.divid + "_form";
     $(newForm).attr({
@@ -142,6 +144,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     var stringsArray = this.feedbackList;
 
     butt.textContent = "Check Me";
+    butt.id = this.origElem.id + "_bcomp"
     $(butt).attr({
             "class" : "btn btn-success",
             "name" : "do answer",
@@ -153,7 +156,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         _this = this;
         for (var i=0; i<_this.answerList.length; i++) {
             var tempAnswerId = _this.answerList[i].id;
-            console.log(tempAnswerId);
             var notFound = true
             var j = 0;
             while (notFound && j < _this.correctList.length) {
@@ -166,9 +168,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         }
 
         var expectedString = expectedArray.join();
-        console.log(tmpid);
-        console.log(expectedString);
-        console.log(stringsArray);
 
         butt.onclick = function() {
             checkMCMAStorage(tmpid,expectedString,stringsArray);   //finish
@@ -186,14 +185,15 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         var correctAnswerIndex = i-1;
 
 
-        
+
         butt.onclick = function() {
             checkMCMFStorage(tmpid,correctAnswerIndex,stringsArray);
         };
 
+
     }
     newForm.appendChild(butt);
- 
+
     var br = document.createElement("br");
     formDiv.appendChild(br);
     formDiv.appendChild(feedbackDiv);
@@ -201,6 +201,14 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
     $(this.origElem).replaceWith(formDiv);
 
+}
+
+MultipleChoice.prototype.restoreLocalAnswers = function() {
+    if (this.multipleanswers) {
+        checkMultipleSelect(this.origElem.id);
+    } else {
+        checkRadio(this.origElem.id);    
+    }
 }
 
 

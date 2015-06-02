@@ -79,14 +79,10 @@ var feedBack = function (divid, correct, feedbackText) {
  Multiple Choice with Feedback for each answer
  */
 var feedBackMCMF = function (divid, correct, feedbackText) {
-    console.log(divid);
-    console.log(correct);
-    console.log(feedbackText);
     if (correct) {
         $(divid).html('Correct!  ' + feedbackText);
         //$(divid).css('background-color', '#C8F4AD');
         $(divid).attr('class','alert alert-success');
-        console.log("this is correct");
     } else {
         if (feedbackText == null) {
             feedbackText = '';
@@ -94,7 +90,6 @@ var feedBackMCMF = function (divid, correct, feedbackText) {
         $(divid).html("Incorrect.  " + feedbackText);
         //$(divid).css('background-color', '#F4F4AD');
         $(divid).attr('class','alert alert-danger');
-        console.log("this is false");
     }
 };
 
@@ -382,18 +377,18 @@ var checkMCMAStorage = function (divid, expected, feedbackArray) {
     var storage_arr = new Array();
     storage_arr.push(givenArray);
     storage_arr.push(expected);
-    //localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
+    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
 
     // log the answer
     var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
         (correctCount == correctArray.length ? 'correct' : 'no');
-    //logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
 
     // give the user feedback
     feedBackMCMA('#' + divid + '_feedback', correctCount,
         correctArray.length, givenArray.length, feedback);
 
-    //document.getElementById(divid + '_bcomp').disabled = false;
+    document.getElementById(divid + '_bcomp').disabled = false;
 };
 
 var checkMCMFStorage = function (divid, expected, feedbackArray) {
@@ -411,15 +406,15 @@ var checkMCMFStorage = function (divid, expected, feedbackArray) {
     var storage_arr = new Array();
     storage_arr.push(given);
     storage_arr.push(expected);
-    //localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
+    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
 
     // log the answer
     var answerInfo = 'answer:' + given + ":" + (given == expected ? 'correct' : 'no');
-    //logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
 
     // give the user feedback
     feedBackMCMF('#' + divid + '_feedback', given == expected, feedback);
-    //document.getElementById(divid + '_bcomp').disabled = false;
+    document.getElementById(divid + '_bcomp').disabled = false;
 };
 
 var correctArray = [];
