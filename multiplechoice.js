@@ -1,5 +1,5 @@
   /*
-  Created by Isaiah and Kirby on 6/something/15
+  Created by Isaiah and Kirby on 6/1/15
   */
 
 
@@ -34,7 +34,6 @@ MultipleChoice.prototype.init = function(opts) {       //Finish later
 
     this.multipleanswers = false
     this.divid = orig.id;
-    console.log($(this.origElem).data('multipleanswers'))
     if ($(this.origElem).data('multipleanswers') === true) {
         this.multipleanswers = true;
     }
@@ -89,19 +88,38 @@ MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tupl
 MultipleChoice.prototype.createMCForm = function() {    //Creates form that holds the question/answers
     var formDiv = document.createElement("div");
     $(formDiv).text(this.question);
+    $(formDiv).addClass("alert alert-warning");
+    formDiv.id = this.divid;
     var newForm = document.createElement("form");
+    newForm.id = this.divid + "_form";
+    $(newForm).attr({
+        "method" : "get",
+        "action" : "",
+        "onsubmit" : "return false;"
+    });
     formDiv.appendChild(newForm);
+
     var input_type = "radio";
-    console.log(this.multipleanswers);
     if (this.multipleanswers) {
         input_type = "checkbox";
     }
 
     for (var i=0; i < this.answerList.length; i++){
         var input = document.createElement("input");
+        var label = document.createElement("label");
+        var br = document.createElement("br");
         input.type = input_type;
+        input.name = "group1";
+        input.value = String(i);
+        var tmpid = String(this.divid) + "_opt_" + String(i);
+        input.id = tmpid;
+        $(label).attr('for', String(tmpid));
+        $(label).text(" " + this.answerList[i].content);
+
 
         newForm.appendChild(input);
+        newForm.appendChild(label);
+        newForm.appendChild(br);
     }
 
     $(this.origElem).replaceWith(formDiv);
