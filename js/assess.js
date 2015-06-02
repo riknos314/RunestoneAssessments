@@ -56,7 +56,7 @@ var checkFIBStorage = function (divid, blankid, expected, feedback, casi) {
     feedBack('#' + divid + '_feedback', isCorrect, feedback);
     var answerInfo = 'answer:' + given + ":" + (isCorrect ? 'correct' : 'no');
     logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': divid});
-    document.getElementById(divid + '_bcomp').disabled = false;    
+    document.getElementById(divid + '_bcomp').disabled = false;
 };
 
 var feedBack = function (divid, correct, feedbackText) {
@@ -75,14 +75,18 @@ var feedBack = function (divid, correct, feedbackText) {
 };
 
 
-/* 
+/*
  Multiple Choice with Feedback for each answer
  */
 var feedBackMCMF = function (divid, correct, feedbackText) {
+    console.log(divid);
+    console.log(correct);
+    console.log(feedbackText);
     if (correct) {
         $(divid).html('Correct!  ' + feedbackText);
         //$(divid).css('background-color', '#C8F4AD');
         $(divid).attr('class','alert alert-success');
+        console.log("this is correct");
     } else {
         if (feedbackText == null) {
             feedbackText = '';
@@ -90,6 +94,7 @@ var feedBackMCMF = function (divid, correct, feedbackText) {
         $(divid).html("Incorrect.  " + feedbackText);
         //$(divid).css('background-color', '#F4F4AD');
         $(divid).attr('class','alert alert-danger');
+        console.log("this is false");
     }
 };
 
@@ -269,7 +274,7 @@ var tookTimedExam = function () {
 			'border': '2px solid #DFF0D8',
 			'border-radius': '25px'
 		});
-		
+
 		$("#results").css({
 			'width': '50%',
 			'margin': '0 auto',
@@ -289,7 +294,7 @@ var tookTimedExam = function () {
    var len = localStorage.length;
    var pageName = getPageName();
    if (len > 0) {
-      if (localStorage.getItem(eBookConfig.email + ":timedExam:" + pageName) !== null) 
+      if (localStorage.getItem(eBookConfig.email + ":timedExam:" + pageName) !== null)
          return 1;
       else return 0;
    }
@@ -302,7 +307,7 @@ var checkMultipleSelect = function (divid) {
 
     var len = localStorage.length;
     if (len > 0) {
-        
+
     	var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
     	if (ex !== null) {
            var arr = ex.split(";");
@@ -328,7 +333,7 @@ var checkPreviousFIB = function (divid) {
            var arr = ex.split(";");
            var str = key + "_ans1";
            $("#" + str).attr("value", arr[0]);
-           document.getElementById(divid + '_bcomp').disabled = false;                
+           document.getElementById(divid + '_bcomp').disabled = false;
         } // end if ex not null
     } // end if len > 0
 };
@@ -406,15 +411,15 @@ var checkMCMFStorage = function (divid, expected, feedbackArray) {
     var storage_arr = new Array();
     storage_arr.push(given);
     storage_arr.push(expected);
-    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
+    //localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
 
     // log the answer
     var answerInfo = 'answer:' + given + ":" + (given == expected ? 'correct' : 'no');
-    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
+    //logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
 
     // give the user feedback
     feedBackMCMF('#' + divid + '_feedback', given == expected, feedback);
-    document.getElementById(divid + '_bcomp').disabled = false;
+    //document.getElementById(divid + '_bcomp').disabled = false;
 };
 
 var correctArray = [];
@@ -423,7 +428,7 @@ var divArray = [];
 
 
 var populateArrays = function (divid, expected, feedbackList){
-	correctArray.push(expected);	
+	correctArray.push(expected);
 	divArray.push(divid);
 	feedbackArray.push(feedbackList);
 };
@@ -450,34 +455,34 @@ function checkTimedMCMFStorage(){
     if(!taken) {
 	$('#pause').attr('disabled',true);
 	$('#finish').attr('disabled',true);
-	
+
 	// loop through the items in the divArray
     for (var j = 0; j<= divArray.length -1;j++){
 
 	    divid = divArray[j];
 	    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-	    hasAns = 0; // reset each iteration of the loop 
+	    hasAns = 0; // reset each iteration of the loop
 	    answer = " "; // reset each iteration of the loop
-	    
+
 	    // loop through each option since we are showing feedback for each option
-	    for (var i = 0 ; i <=buttonObjs.length - 1; i++) 
+	    for (var i = 0 ; i <=buttonObjs.length - 1; i++)
 	    {
 		    given = buttonObjs[i].value;
 		    expected = correctArray[j];
 		    feedback = feedbackArray[j][i];
-		    
+
 		    // give the user feedback
 		    op = String.fromCharCode(i+97);
 		    var selected = buttonObjs[i].checked
 		    buttonObjs[i].disabled = true;
 		    feedBackTimedMCMF('#' + divid + '_eachFeedback_' + op, given == expected, feedback);
-		    
+
 		    // if this was the selected choice
 		    if (selected)
 		    {
 		       answer = given;
-               hasAns = selected; 
-                
+               hasAns = selected;
+
                // log the answer
 	           var answerInfo = 'answer:' + answer + ":" + (given == expected ? 'correct' : 'no');
 	           logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
@@ -488,13 +493,13 @@ function checkTimedMCMFStorage(){
 	    	   }
 	    	} // end if selected
 	     } // end for
-	     
+
 	     // if no answer was selected
 	     if(!hasAns) {
 	       given = 1;
 	       expected = 0;
-		   feedback = '';	
-		   skipped++;	
+		   feedback = '';
+		   skipped++;
 	    }
 
 	    //Save answer in local storage
@@ -506,7 +511,7 @@ function checkTimedMCMFStorage(){
 	    }
 
     }
-    
+
     // show the results
 	var percent = (correct/numQuest)*100;
 	var wrong = numQuest - correct - skipped;
@@ -514,11 +519,11 @@ function checkTimedMCMFStorage(){
 	var result = correct + ";" + wrong + ";" + skipped;
 	logBookEvent({'event': 'timedExam', 'act': 'end:' + correct + ":" + wrong + ":" + skipped, 'div_id': getPageName()});
 	localStorage.setItem(eBookConfig.email + ":timedExamResult:" + getPageName(), result);
-	
+
 	taken = 1;
     running = 0;
   } // end if !taken
-  
+
 };
 
 function resetTimedMCMFStorage(){
@@ -527,15 +532,15 @@ function resetTimedMCMFStorage(){
     var feedback = null;
     var expected;
     var op;
-	
+
 	// loop through the items in the divArray
     for (var j = 0; j<= divArray.length -1;j++) {
-    
+
 	    divid = divArray[j];
 	    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-	    
+
 	    // loop through each option since we are showing feedback for each option
-	    for (var i = 0 ; i <=buttonObjs.length - 1; i++) 
+	    for (var i = 0 ; i <=buttonObjs.length - 1; i++)
 	    {
 		    op = String.fromCharCode(i+97);
 		    buttonObjs[i].disabled = true;
@@ -544,10 +549,10 @@ function resetTimedMCMFStorage(){
 		    feedback = feedbackArray[j][i];
 		    feedBackTimedMCMF('#' + divid + '_eachFeedback_' + op, given == expected, feedback);
 	     } // end for
-	    
+
     } // end for loop through divArray
-    
-    
+
+
     var result = localStorage.getItem(eBookConfig.email + ":timedExamResult:" + getPageName());
     if (result !== null)
     {
@@ -558,7 +563,7 @@ function resetTimedMCMFStorage(){
        var percent = correct / divArray.length * 100;
        document.getElementById("results").innerHTML = "Num Correct: " + correct + " Num Wrong: " + wrong + " Num Skipped: " + skipped + " Percent Correct: " + percent + "%";
     }
-  
+
 };
 
 
@@ -566,7 +571,7 @@ var feedBackTimedMCMF = function (divid, correct, feedbackText) {
     if (correct) {
         $(divid).html('Correct Answer.  ' + feedbackText);
         $(divid).attr('class','alert alert-success');
-	
+
     } else {
         if (feedbackText == null) {
             feedbackText = '';
@@ -608,7 +613,7 @@ function start(){
 	        logBookEvent({'event': 'timedExam', 'act': 'start', 'div_id': name});
 	        localStorage.setItem(eBookConfig.email + ":timedExam:" + name, "started");
 		}
-	} 
+	}
 };
 
 
@@ -621,7 +626,7 @@ function pause(){
 			//document.getElementById("button_show").innerHTML = "Timed Quiz Paused/Not Started";
 			document.getElementById("pause").innerHTML = "Resume";
 			$("#timed_Test").hide();
-			
+
 
 		}else{
 			running = 1;
@@ -630,7 +635,7 @@ function pause(){
 			//document.getElementById("button_show").innerHTML = "Currently Taking Timed Quiz";
 			document.getElementById("pause").innerHTML = "Pause";
 			$("#timed_Test").show();
-			
+
 		}
 	}
 };
@@ -638,7 +643,7 @@ function pause(){
 function getTime() {
         var mins = Math.floor(time/60);
 		var secs = Math.floor(time) % 60;
-		
+
 		if(mins<10){
 			mins = "0" + mins;
 		}
@@ -651,43 +656,43 @@ function getTime() {
 function showTime(time){
 		var mins = Math.floor(time/60);
 		var secs = Math.floor(time) % 60;
-		
+
 		if(mins<10){
 			mins = "0" + mins;
 		}
 		if(secs<10){
 			secs = "0" + secs;
 		}
-		
+
 		document.getElementById("output").innerHTML = "Time Remaining  " + mins + ":" + secs;
 		var timeTips = document.getElementsByClassName("timeTip");
 			for(var i = 0; i<= timeTips.length - 1; i++){
 				timeTips[i].title = mins + ":" + secs;
 		}
-}		
-		
+}
+
 function increment(){
 
     // if running (not paused) and not taken
 	if(running == 1 & !taken) {
-	
+
 		setTimeout(function() {
 		time--;
 		showTime(time);
-		
+
 		   if(time>0){
 			  increment();
-			  
+
 			// ran out of time
 		   }else{
 			   running = 0;
 			   done = 1;
-			
+
 			   if(taken == 0){
 			     checkTimedMCMFStorage();
 			   }
 		  }
-		},1000);		
+		},1000);
 	}
 
 };
@@ -858,4 +863,3 @@ function createGradeSummary(div_id) {
 //    hidden fields for meta data??? each form defines a checkme function with no parameters
 //    that calls the actual function that checks the answer properly??
 // summarize
-
