@@ -63,7 +63,7 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
 MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects and pushes them to answerList
 	//ID, Correct bool, Content (text)
     _this = this;
-	$('[data-component=answer').each(function(index) {
+	$('[data-component=answer]').each(function(index) {
 		var answer_id = $(this).attr('id');
 		var is_correct = false;
 		if ( $(this).is("[data-correct]") ) {  //If data-correct attribute exists, answer is correct
@@ -78,7 +78,7 @@ MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects an
 MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tuple to dictionary with for_id as key
 	//for_id, content (text)
     _this = this
-	$('[data-component=feedback').each(function(index) {
+	$('[data-component=feedback]').each(function(index) {
 		var for_id = $(this).attr('for');  //selects 'for' attribute
 		var feedback_text = $(this).text();
 		_this.feedbackList.push(feedback_text);
