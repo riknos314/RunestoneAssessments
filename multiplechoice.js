@@ -39,12 +39,14 @@ MultipleChoice.prototype.init = function(opts) {       //Finish later
     }
 
 	this.answerList = [];
-	this.feedbackDict = {};
+    this.correctList = [];
+	this.feedbackList = [];
 	this.question = null;
 
 	this.findAnswers();
 	this.findQuestion();
 	this.findFeedbacks();
+    this.createCorrectList();
     this.createMCForm();
 
 }
@@ -79,8 +81,18 @@ MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tupl
 	$('[data-component=feedback').each(function(index) {
 		var for_id = $(this).attr('for');  //selects 'for' attribute
 		var feedback_text = $(this).text();
-		_this.feedbackDict[for_id] = feedback_text;
+		_this.feedbackList.push(feedback_text);
 	});
+}
+
+
+MultipleChoice.prototype.createCorrectList = function() {
+
+    for (var i=0; i < this.answerList.length; i++) {
+        if (this.answerList[i].correct) {
+            this.correctList.push(this.answerList[i].id);
+        }
+    }
 }
 
 
@@ -91,6 +103,8 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     $(formDiv).addClass("alert alert-warning");
     formDiv.id = this.divid;
     var newForm = document.createElement("form");
+    var feedbackDiv = document.createElement("div");
+
     newForm.id = this.divid + "_form";
     $(newForm).attr({
         "method" : "get",
@@ -98,6 +112,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         "onsubmit" : "return false;"
     });
     formDiv.appendChild(newForm);
+    feedbackDiv.id = this.divid + "_feedback";
 
     var input_type = "radio";
     if (this.multipleanswers) {
@@ -114,13 +129,51 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         var tmpid = String(this.divid) + "_opt_" + String(i);
         input.id = tmpid;
         $(label).attr('for', String(tmpid));
-        $(label).text(" " + this.answerList[i].content);
+        $(label).text(this.answerList[i].content);
 
 
         newForm.appendChild(input);
         newForm.appendChild(label);
         newForm.appendChild(br);
     }
+
+    if (this.multipleanswers) {
+
+
+    } else {
+        var butt = document.createElement("button");
+        var tmpid = this.origElem.id;
+        var found = false;
+        butt.textContent = "Check Me";
+        var i=0;
+        while (!found) {
+            if (this.correctList[0] == this.answerList[i].id){
+                found = true;
+            }
+            i++;
+        }
+        var correctAnswerIndex = i-1;
+        var stringsArray = this.feedbackList;
+        console.log(tmpid);
+        console.log(correctAnswerIndex);
+        console.log(stringsArray);
+
+
+        $(butt).attr({
+            "class" : "btn btn-success",
+            "name" : "do answer",
+        })
+        butt.onclick = function() {
+            checkMCMFStorage(tmpid,correctAnswerIndex,stringsArray);
+        };
+
+        formDiv.appendChild(butt);
+
+    }
+    var br = document.createElement("br");
+    formDiv.appendChild(br);
+    formDiv.appendChild(feedbackDiv);
+
 
     $(this.origElem).replaceWith(formDiv);
 
