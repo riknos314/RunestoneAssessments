@@ -308,7 +308,7 @@ var checkMultipleSelect = function (divid) {
            var arr = ex.split(";");
            var answers = arr[0].split(",");
            for (var a = 0; a < answers.length; a++) {
-              var str = key + "_opt_" + answers[a];
+              var str = divid + "_opt_" + answers[a];
               $("#" + str).attr("checked", "true");
               document.getElementById(divid + '_bcomp').disabled = false;
            } // end for
@@ -326,7 +326,7 @@ var checkPreviousFIB = function (divid) {
     	var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
     	if (ex !== null) {
            var arr = ex.split(";");
-           var str = key + "_ans1";
+           var str = divid + "_ans1";
            $("#" + str).attr("value", arr[0]);
            document.getElementById(divid + '_bcomp').disabled = false;
         } // end if ex not null
