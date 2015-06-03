@@ -41,14 +41,15 @@ FITB.prototype.init = function(opts) {
 	}
 
 	this.findQuestion();
-	this.populateFeebackArray();
+	this.populateFeedbackArray();
 	this.createFITBElement();
 
 }
 
 
 FITB.prototype.findQuestion = function() {     //Gets question text and puts it into this.question
-	var correctAnswerId = this.correctAnswer.id;
+	var correctAnswerId = $('[data-answer]').attr("id");
+
 	var delimiter = document.getElementById(correctAnswerId).outerHTML;
 	var fulltext = $(this.origElem).html();
 	var temp = fulltext.split(delimiter);
@@ -61,9 +62,10 @@ FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedback
 	$('[data-feedback=text]').each( function(index) {
 		var tempArr = [];
 		var tempFor = $(this).attr('for');
-		var tempRegEx = $(tempFor).id;
+        console.log(tempFor);
+		var tempRegEx = $(tempFor);
 		tempArr.push(tempRegEx.text);
-		tempARr.push(this.text);
+		tempArr.push(this.text);
 		_this.feedbackArray.push(tempArr);
 
 	});
@@ -80,7 +82,7 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
 	$(newInput).attr({
 		'type' : 'text',
 		'id' : this.divid + 'blank',
-		}); 
+		});
 
 	feedbackDiv.id = this.divid + '_feedback';
 	var butt = document.createElement('button');
