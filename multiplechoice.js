@@ -144,7 +144,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     var stringsArray = this.feedbackList;
 
     butt.textContent = "Check Me";
-    butt.id = this.origElem.id + "_bcomp"
     $(butt).attr({
             "class" : "btn btn-success",
             "name" : "do answer",
@@ -192,7 +191,21 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
 
     }
+
+    var compButt = document.createElement("button");
+    $(compButt).attr({
+        "class":"btn btn-default",
+        "id":this.origElem.id+"_bcomp",
+        "disabled":"",
+        "name":"compare",
+    });
+    compButt.textContent = "Compare Me";
+    compButt.onclick = function() {
+        compareAnswers(this.divid);
+    }
+
     newForm.appendChild(butt);
+    newForm.appendChild(compButt);
 
     var br = document.createElement("br");
     formDiv.appendChild(br);
@@ -207,7 +220,7 @@ MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local 
     if (this.multipleanswers) {
         checkMultipleSelect(this.origElem.id);
     } else {
-        checkRadio(this.origElem.id);    
+        checkRadio(this.origElem.id);
     }
 }
 

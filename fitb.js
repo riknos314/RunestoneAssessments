@@ -43,7 +43,7 @@ FITB.prototype.init = function(opts) {
 	this.findQuestion();
 	this.populateFeedbackArray();
 	this.createFITBElement();
-
+    this.restoreLocalAnswers();
 }
 
 
@@ -62,10 +62,9 @@ FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedback
 	$('[data-feedback=text]').each( function(index) {
 		var tempArr = [];
 		var tempFor = $(this).attr('for');
-        console.log(tempFor);
-		var tempRegEx = $(tempFor);
-		tempArr.push(tempRegEx.text);
-		tempArr.push(this.text);
+		var tempRegEx = document.getElementById(tempFor).innerText;
+		tempArr.push(tempRegEx);
+		tempArr.push(this.innerText);
 		_this.feedbackArray.push(tempArr);
 
 	});
@@ -87,20 +86,49 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
 	feedbackDiv.id = this.divid + '_feedback';
 	var butt = document.createElement('button');
 	butt.textContent = "Check Me";
-    butt.id = this.origElem.id + "_bcomp"
     $(butt).attr({
             "class" : "btn btn-success",
             "name" : "do answer",
         });
 
+    var tmpid = this.divid;
+    var tmpblankid = tmpid+"blank";
+    var tmpcorrectAnswer = this.correctAnswer;
+    var tmpfeedbackArray = this.feedbackArray;
+    var tmpcasei = this.casei;
+
+    butt.onclick = function() {
+        checkFIBStorage(tmpid,tmpblankid,tmpcorrectAnswer,tmpfeedbackArray,tmpcasei);
+    }
+
+
+    var compButt = document.createElement("button");
+    $(compButt).attr({
+        "class":"btn btn-default",
+        "id":this.origElem.id+"_bcomp",
+        "disabled":"",
+        "name":"compare",
+    });
+    compButt.textContent = "Compare Me";
+    compButt.onclick = function() {
+        compareFITBAnswers(this.divid);
+    }
+
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(newInput);
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(butt);
+    inputDiv.appendChild(compButt);
+
+    inputDiv.appendChild(feedbackDiv);
 
     $(this.origElem).replaceWith(inputDiv);
 
 
+}
+
+FITB.prototype.restoreLocalAnswers = function() {
+    checkPreviousFIB(this.divid);
 }
 
 
