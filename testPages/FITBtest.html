@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+	<meta charset="UTF-8">
+    <title></title>
+	<link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/jquery-ui.css"/>
+	<link rel="stylesheet" href="bootstrap.min.css"/>
+	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://interactivepython.org/runestone/static/thinkcspy/_static/bookfuncs.js"></script>
+	<script type="text/javascript" src="../js/assess.js"></script>
+	<script type="text/javascript" src="../fitb.js"></script>
+	<script type="text/javascript">
+		eBookConfig = {};
+		eBookConfig.host = 'http://interactivepython.org' ? 'http://interactivepython.org' : 'http://127.0.0.1:8000';
+		eBookConfig.app = eBookConfig.host+'/runestone';
+		eBookConfig.ajaxURL = eBookConfig.app+'/ajax/';
+		eBookConfig.course = 'thinkcspy';
+		eBookConfig.logLevel = 10;
+		eBookConfig.loginRequired = false
+		eBookConfig.build_info = "3.1.1";
+		eBookConfig.isLoggedIn = false;
+	</script>
+</head>
+<body>
+	<p data-component="fillintheblank" >
+		This is the text of the question
+		<span answer="regex" width=int></span>
+		more text and
+		<span data-answer="regex" width=int></span>
+		and maybe more</p>
+</body>
+
+
+</html>
