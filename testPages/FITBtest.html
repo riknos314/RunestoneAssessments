@@ -24,13 +24,12 @@
 	</script>
 </head>
 <body>
-	<p data-component="fillintheblank" data-casei="false">
-		Without using the activecode infixToPostfix function, convert the following expression to postfix <br> 10 + 3 * 5 / (16 - 4) ___
-		<span data-answer>\\b10\\s+3\\s+5\\s*\\*\\s*16\\s+4\\s*-\\s*/\\s*\\+</span>
-		<span data-feedback="regex" id="feedback1" width=int>10.*3.*5.*16.*4</span>
-		<span data-feedback="text" for="feedback1" width=int>The numbers appear to be in the correct order check your operators.</span>
-		<span data-feedback="regex" id="feedback2" width=int>.*</span>
-		<span data-feedback="text" for="feedback2" width=int>Remember the numbers will be in the same order as the original equation</span>
+	<p data-component="fillintheblank" data-casei="false" id="blank-1">
+		Enter a string that contains the letter 'e'!
+
+		<span data-answer id="blank-1_answer">e</span>
+		<span data-feedback="regex" id="feedback1">.*</span>
+		<span data-feedback="text" for="feedback1">There's not an e in that string!</span>
 	</p>
 </body>
 

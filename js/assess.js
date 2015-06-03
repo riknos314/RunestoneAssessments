@@ -28,6 +28,7 @@ var feedbackMCMFRandom = function (divid, correct, feedbackText) {
 
 var checkFIBStorage = function (divid, blankid, expected, feedback, casi) {
     var given = document.getElementById(blankid).value;
+    console.log(feedback);
     // update number of trials??
     // log this to the db
     modifiers = '';
@@ -40,13 +41,16 @@ var checkFIBStorage = function (divid, blankid, expected, feedback, casi) {
         fbl = feedback;
         for (var i = 0; i < fbl.length; i++) {
             patt = RegExp(fbl[i][0]);
+            console.log(patt);
             if (patt.test(given)) {
+                console.log("we made it");
+                console.log(fbl);
                 feedback = fbl[i][1];
                 break;
             }
         }
     }
-
+    console.log(feedback);
     // store the answer in local storage
     var storage_arr = new Array();
     storage_arr.push(given);
@@ -321,12 +325,11 @@ var checkPreviousFIB = function (divid) {
     // which were stored into local storage
 
     var len = localStorage.length;
-
     if (len > 0) {
     	var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
     	if (ex !== null) {
            var arr = ex.split(";");
-           var str = divid + "_ans1";
+           var str = divid + "blank";
            $("#" + str).attr("value", arr[0]);
            document.getElementById(divid + '_bcomp').disabled = false;
         } // end if ex not null
