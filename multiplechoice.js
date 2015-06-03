@@ -148,7 +148,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     $(butt).attr({
             "class" : "btn btn-success",
             "name" : "do answer",
-        })
+        });
 
 
     if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
