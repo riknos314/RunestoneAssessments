@@ -1,5 +1,5 @@
   /*
-  Created by Isaiah and Kirby on 6/1/15
+  Created by Isaiah Mayerchak and Kirby Olson on 6/1/15
   */
 
 
@@ -16,7 +16,7 @@ RunestoneBase.prototype.logRunEvent = function(info) {
     console.log("running " + this.divid);
 };
 
-var mcList = {};  //Multiple Choice list
+var mcList = {};  //Multiple Choice dictionary
 
 MultipleChoice.prototype = new RunestoneBase();
 
@@ -27,7 +27,7 @@ function MultipleChoice(opts) {
 	}
 }
 
-MultipleChoice.prototype.init = function(opts) {       //Finish later
+MultipleChoice.prototype.init = function(opts) {
 	RunestoneBase.apply(this, arguments);
 	var orig = opts.orig;  //entire <ul> element
 	this.origElem = orig;
@@ -170,7 +170,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         var expectedString = expectedArray.join();
 
         butt.onclick = function() {
-            checkMCMAStorage(tmpid,expectedString,stringsArray);   //finish
+            checkMCMAStorage(tmpid,expectedString,stringsArray);
         }
 
     } else {
@@ -203,7 +203,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
 }
 
-MultipleChoice.prototype.restoreLocalAnswers = function() {
+MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local storage
     if (this.multipleanswers) {
         checkMultipleSelect(this.origElem.id);
     } else {
