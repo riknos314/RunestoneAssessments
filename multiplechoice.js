@@ -140,8 +140,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     }
 
     var butt = document.createElement("button");
-    var tmpid = this.origElem.id;
-    var stringsArray = this.feedbackList;
 
     butt.textContent = "Check Me";
     $(butt).attr({
@@ -149,10 +147,10 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
             "name" : "do answer",
         });
 
-
+    var _this = this;
     if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
         var expectedArray = [];
-        _this = this;
+
         for (var i=0; i<_this.answerList.length; i++) {
             var tempAnswerId = _this.answerList[i].id;
             var notFound = true
@@ -165,11 +163,10 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
                 j++;
             }
         }
-
-        var expectedString = expectedArray.join();
+        this.expectedString = expectedArray.join();
 
         butt.onclick = function() {
-            checkMCMAStorage(tmpid,expectedString,stringsArray);
+            _this.checkMCMAStorage();
         }
 
     } else {
@@ -181,12 +178,10 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
             }
             i++;
         }
-        var correctAnswerIndex = i-1;
-
-
+        this.correctAnswerIndex = i-1;
 
         butt.onclick = function() {
-            checkMCMFStorage(tmpid,correctAnswerIndex,stringsArray);
+            _this.checkMCMFStorage();
         };
 
 
@@ -218,13 +213,164 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
 MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local storage
     if (this.multipleanswers) {
-        checkMultipleSelect(this.origElem.id);
+        this.checkMultipleSelect();
     } else {
-        checkRadio(this.origElem.id);
+        this.checkRadio();
     }
 }
+MultipleChoice.prototype.checkMultipleSelect = function () {
+    // This function repopulates MCMA questions with a user's previous answers,
+    // which were stored into local storage.
+    var _this = this;
+    var len = localStorage.length;
+    if (len > 0) {
 
+    	var ex = localStorage.getItem(eBookConfig.email + ":" + _this.divid);
+    	if (ex !== null) {
+            var arr = ex.split(";");
+            var answers = arr[0].split(",");
+            for (var a = 0; a < answers.length; a++) {
+                var str = "#"+_this.divid + "_opt_" + answers[a];
+                $(str).attr("checked", "true");
+                document.getElementById(_this.divid + '_bcomp').disabled = false;
+            } // end for
+        } // end if
+    } // end if len > 0
+};
 
+MultipleChoice.prototype.checkRadio = function () {
+    // This function repopulates a MCMF question with a user's previous answer,
+    // which was previously stored into local storage
+    _this = this
+    var len = localStorage.length;
+
+    //retrieving data from local storage
+    if (len > 0) {
+      var ex = localStorage.getItem(eBookConfig.email + ":" + _this.divid);
+      if (ex !== null)
+      {
+      	var arr = ex.split(";");
+      	var str = "#"+_this.divid + "_opt_" + arr[0];
+      	$(str).attr("checked", "true");
+      	document.getElementById(_this.divid + '_bcomp').disabled = false;
+      } // end if not null
+    } // end if (len > 0)
+};
+
+MultipleChoice.prototype.checkMCMAStorage = function () {
+    var given;
+    var feedback = "";
+    var correctArray = this.expectedString.split(",");
+    correctArray.sort();
+    var givenArray = [];
+    var correctCount = 0;
+    var correctIndex = 0;
+    var givenIndex = 0;
+    var givenlog = '';
+    var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+
+    // loop through the checkboxes
+    var _this = this
+    for (var i = 0; i < buttonObjs.length; i++) {
+        if (buttonObjs[i].checked) { // if checked box
+            given = buttonObjs[i].value; // get value of this button
+            givenArray.push(given)    // add it to the givenArray
+            feedback += given + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
+            givenlog += given + ",";
+        }
+    }
+    // sort the given array
+    givenArray.sort();
+
+    while (correctIndex < correctArray.length &&
+        givenIndex < givenArray.length) {
+        if (givenArray[givenIndex] < correctArray[correctIndex]) {
+            givenIndex++;
+        }
+        else if (givenArray[givenIndex] == correctArray[correctIndex]) {
+            correctCount++;
+            givenIndex++;
+            correctIndex++;
+        }
+        else {
+            correctIndex++;
+        }
+
+    } // end while
+
+    // save the data into local storage
+    var storage_arr = new Array();
+    storage_arr.push(givenArray);
+    storage_arr.push(this.expectedArray);
+    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
+
+    // log the answer
+    var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
+        (correctCount == correctArray.length ? 'correct' : 'no');
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': _this.divid});
+
+    // give the user feedback
+    this.feedBackMCMA(correctCount,
+        correctArray.length, givenArray.length, feedback);
+
+    document.getElementById(this.divid + '_bcomp').disabled = false;
+};
+
+MultipleChoice.prototype.feedBackMCMA = function (numCorrect, numNeeded, numGiven, feedbackText) {
+    tmpdivid = "#"+this.divid + "_feedback";
+    var answerStr = "answers";
+    if (numGiven == 1) answerStr = "answer";
+
+    if (numCorrect == numNeeded && numNeeded == numGiven) {
+        $(tmpdivid).html('Correct!  <br />' + feedbackText);
+        $(tmpdivid).attr('class', 'alert alert-success');
+    } else {
+        $(tmpdivid).html("Incorrect.  " + "You gave " + numGiven +
+            " " + answerStr + " and got " + numCorrect + " correct of " +
+            numNeeded + " needed.<br /> " + feedbackText);
+        $(tmpdivid).attr('class', 'alert alert-danger');
+    }
+};
+
+MultipleChoice.prototype.checkMCMFStorage = function () {
+    var given;
+    var feedback = null;
+    var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+    for (var i = buttonObjs.length - 1; i >= 0; i--) {
+        if (buttonObjs[i].checked) {
+            given = buttonObjs[i].value;
+            feedback = this.feedbackList[i];
+        }
+    }
+
+    //Saving data in local storage
+    var storage_arr = new Array();
+    storage_arr.push(given);
+    storage_arr.push(this.correctAnswerIndex);
+    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
+
+    // log the answer
+    var answerInfo = 'answer:' + given + ":" + (given == this.correctAnswerIndex ? 'correct' : 'no');
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
+
+    // give the user feedback
+    this.feedBackMCMF(given == this.correctAnswerIndex, feedback);
+    document.getElementById(this.divid + '_bcomp').disabled = false;
+};
+
+MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
+    var tmpdivid = "#"+this.divid+"_feedback";
+    if (correct) {
+        $(tmpdivid).html('Correct!  ' + feedbackText);
+        $(tmpdivid).attr('class','alert alert-success');
+    } else {
+        if (feedbackText == null) {
+            feedbackText = '';
+        }
+        $(tmpdivid).html("Incorrect.  " + feedbackText);
+        $(tmpdivid).attr('class','alert alert-danger');
+    }
+};
 
 $(document).ready(function() {
     $('[data-component=multiplechoice]').each( function(index ){
