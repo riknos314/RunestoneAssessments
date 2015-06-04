@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+    <title></title>
+	<link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/jquery-ui.css"/>
+	<link rel="stylesheet" href="bootstrap.min.css"/>
+	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://interactivepython.org/runestone/static/thinkcspy/_static/bookfuncs.js"></script>
+	<script type="text/javascript" src="http://www.interactivepython.org/runestone/static/thinkcspy/_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/assess.js"></script>
+	<script type="text/javascript">
+		eBookConfig = {};
+		eBookConfig.host = 'http://interactivepython.org' ? 'http://interactivepython.org' : 'http://127.0.0.1:8000';
+		eBookConfig.app = eBookConfig.host+'/runestone';
+		eBookConfig.ajaxURL = eBookConfig.app+'/ajax/';
+		eBookConfig.course = 'thinkcspy';
+		eBookConfig.logLevel = 10;
+		eBookConfig.loginRequired = false
+		eBookConfig.build_info = "3.1.1";
+		eBookConfig.isLoggedIn = false;
+	</script>
+
+
+</head>
+<body>
+	<ul data-component="multiplechoice" data-multipleanswers="false" id="question-1">
+	The Question can go right here.
+		<li data-component="answer" id="123" >Answer One</li>
+		<li data-component="feedback" for="123">Feedback for One</li>
+
+		<li data-component="answer" id="456">Answer Two</li>
+		<li data-component="feedback" for="456">Feedback for Two</li>
+
+		<li data-component="answer" id="789" data-correct>Answer Three</li>
+		<li data-component="feedback" for="789">Feedback for Three</li>
+
+	</ul>
+
+	<p data-component="fillintheblank" data-casei="false" id="blank-1">
+		Enter a string that contains the letter 'e'!
+
+		<span data-answer id="blank-1_answer">e</span>
+		<span data-feedback="regex" id="feedback1">.*</span>
+		<span data-feedback="text" for="feedback1">There's not an e in that string!</span>
+	</p>
+</body>
+
+</html>
