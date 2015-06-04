@@ -83,8 +83,6 @@ FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedback
 		var tempRegEx = document.getElementById(tempFor).innerHTML;
 		tempArr.push(tempRegEx);
 		tempArr.push(this.innerHTML);
-		console.log(tempRegEx);
-		console.log(this.innerHTML);
 		_this.feedbackArray.push(tempArr);
 
 	});
@@ -170,9 +168,7 @@ FITB.prototype.checkFIBStorage = function() {                //Starts chain of f
     var patt = RegExp(this.correctAnswer, modifiers);
     var isCorrect = patt.test(given);
     if (!isCorrect) {
-    	console.log("About to define fbl");
         fbl = this.feedbackArray;
-        console.log(fbl);
         for (var i = 0; i < fbl.length; i++) {
             patt = RegExp(fbl[i][0]);
             if (patt.test(given)) {
