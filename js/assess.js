@@ -1,772 +1,192 @@
-
-var add_button = function (divid, expected, feedArray) {
-    var bdiv = divid + "_bt";
-    var element = document.createElement("input");
-    element.setAttribute("type", "button");
-    element.setAttribute("value", "Check Me!");
-    element.setAttribute("name", "do check");
-    element.onclick = function () {
-        checkMCMFRandom(divid, expected, feedArray);
-    };
-    $("#" + bdiv).html(element);
-};
-
-var feedbackMCMFRandom = function (divid, correct, feedbackText) {
-    if (correct) {
-        $(divid).html('Correct!  ' + feedbackText);
-        //$(divid).css('background-color', '#C8F4AD');
-        $(divid).attr('class','alert alert-success');
-    } else {
-        if (feedbackText == null) {
-            feedbackText = '';
-        }
-        $(divid).html("Incorrect.  " + feedbackText);
-        //$(divid).css('background-color', '#F4F4AD');
-        $(divid).attr('class','alert alert-danger')
-    }
-};
-
-var checkFIBStorage = function (divid, blankid, expected, feedback, casi) {
-    var given = document.getElementById(blankid).value;
-    console.log(feedback);
-    // update number of trials??
-    // log this to the db
-    modifiers = '';
-    if (casi) {
-        modifiers = 'i'
-    }
-    var patt = RegExp(expected, modifiers);
-    var isCorrect = patt.test(given);
-    if (!isCorrect) {
-        fbl = feedback;
-        for (var i = 0; i < fbl.length; i++) {
-            patt = RegExp(fbl[i][0]);
-            console.log(patt);
-            if (patt.test(given)) {
-                console.log("we made it");
-                console.log(fbl);
-                feedback = fbl[i][1];
-                break;
-            }
-        }
-    }
-    console.log(feedback);
-    // store the answer in local storage
-    var storage_arr = new Array();
-    storage_arr.push(given);
-    storage_arr.push(expected);
-    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
-
-    feedBack('#' + divid + '_feedback', isCorrect, feedback);
-    var answerInfo = 'answer:' + given + ":" + (isCorrect ? 'correct' : 'no');
-    logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': divid});
-    document.getElementById(divid + '_bcomp').disabled = false;
-};
-
-var feedBack = function (divid, correct, feedbackText) {
-    if (correct) {
-        $(divid).html('You are Correct!');
-        //$(divid).css('background-color', '#C8F4AD');
-        $(divid).attr('class','alert alert-success');
-    } else {
-        if (feedbackText == null) {
-            feedbackText = '';
-        }
-        $(divid).html("Incorrect.  " + feedbackText);
-        //$(divid).css('background-color', '#F4F4AD');
-        $(divid).attr('class','alert alert-danger');
-    }
-};
+ /*
+  Created by Isaiah Mayerchak and Kirby Olson on 6/4/15
+  */
 
 
-/*
- Multiple Choice with Feedback for each answer
- */
-var feedBackMCMF = function (divid, correct, feedbackText) {
-    if (correct) {
-        $(divid).html('Correct!  ' + feedbackText);
-        //$(divid).css('background-color', '#C8F4AD');
-        $(divid).attr('class','alert alert-success');
-    } else {
-        if (feedbackText == null) {
-            feedbackText = '';
-        }
-        $(divid).html("Incorrect.  " + feedbackText);
-        //$(divid).css('background-color', '#F4F4AD');
-        $(divid).attr('class','alert alert-danger');
-    }
-};
+//start with basic parent stuff
 
-/*
- Multiple Choice with Multiple Answers
- */
-var feedBackMCMA = function (divid, numCorrect, numNeeded, numGiven, feedbackText) {
-    var answerStr = "answers";
-    if (numGiven == 1) answerStr = "answer";
+function RunestoneBase() {  //Parent function
 
-    if (numCorrect == numNeeded && numNeeded == numGiven) {
-        $(divid).html('Correct!  <br />' + feedbackText);
-        //$(divid).css('background-color', '#C8F4AD');
-        $(divid).attr('class', 'alert alert-success');
-    } else {
-        $(divid).html("Incorrect.  " + "You gave " + numGiven +
-            " " + answerStr + " and got " + numCorrect + " correct of " +
-            numNeeded + " needed.<br /> " + feedbackText);
-        //$(divid).css('background-color', '#F4F4AD');
-        $(divid).attr('class', 'alert alert-danger');
-    }
-};
-
-/* Randomize options */
-
-var createHTML_MCMFRandom = function (divid, answerString, feedString, corrAnswer) {
-    var i, j, k, l, len;
-    var arr = new Array();
-    var fr = new Array();
-    var alpha = ['a', 'b', 'c', 'd', 'e'];
-    var ansArray = new Array();
-    var feedArray = new Array();
-    var hash = new Array();
-
-    arr = answerString.split("*separator*");
-    fr = feedString.split("*separator*");
-
-    for (j = 0; j < arr.length - 1; j++) {
-        ansArray[j] = arr[j];
-        hash[ansArray[j]] = fr[j];
-    }
-
-    i = ansArray.length;
-    len = i;
-    if (i == 0) return false;
-    while (--i) {
-        var j = Math.floor(Math.random() * ( i + 1 ));
-        var tempi = ansArray[i];
-        var tempj = ansArray[j];
-        ansArray[i] = tempj;
-        ansArray[j] = tempi;
-    }
-
-    for (i = 0; i < ansArray.length; i++) {
-        k = ansArray[i];
-        feedArray[i] = hash[k];
-    }
-
-    for (l = 0; l < len; l++) {
-        var rad = "<input type='radio' name='group1' value='" + l + "'/>" + "<label for= 'opt_" + l + "'>" + "  " + alpha[l] + ")  " + ansArray[l] + "</label><br />";
-        var opdiv = divid + "_op" + (l + 1);
-        $("#" + opdiv).html(rad);
-
-    }
-
-    var index = ansArray.indexOf(corrAnswer);
-    add_button(divid, index, feedArray);
-
-    return true;
-};
-
-var checkMCMFRandom = function (divid, expected, feed) {
-    var given;
-    var feedback = null;
-    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-    for (var i = buttonObjs.length - 1; i >= 0; i--) {
-        if (buttonObjs[i].checked) {
-            given = buttonObjs[i].value;
-            feedback = feed[i];
-        }
-    }
-
-    // log the answer
-    var answerInfo = 'answer:' + given + ":" + (given == expected ? 'correct' : 'no');
-    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
-
-    // give the user feedback
-    feedbackMCMFRandom('#' + divid + '_feedback', given == expected, feedback);
-};
-
-/* Local Storage */
-
-var resetPage = function (divid) {
-
-    var i;
-    var id = new Array();
-    var keyArr = new Array();
-    id = divid.split("_");
-    var pageNum = id[1];
-    location.reload();
-
-    //erasing data from local storage
-    var len = localStorage.length;
-    if (len > 0) {
-        for (i = 0; i < len; i++) {
-            var key = localStorage.key(i);
-            var str = key.substring(0, 1);
-            if (str === pageNum) {
-                keyArr.push(key);
-            }
-        }
-    }
-    for (i = 0; i < keyArr.length; i++)
-        localStorage.removeItem(keyArr[i]);
-};
-
-var checkRadio = function (divid) {
-    // This function repopulates a MCMF question with a user's previous answer,
-    // which was previously stored into local storage
-
-    var len = localStorage.length;
-
-    //retrieving data from local storage
-    if (len > 0) {
-      var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
-      if (ex !== null)
-      {
-      	var arr = ex.split(";");
-      	var str = divid + "_opt_" + arr[0];
-      	$("#" + str).attr("checked", "true");
-      	document.getElementById(divid + '_bcomp').disabled = false;
-      } // end if not null
-    } // end if (len > 0)
-};
-
-function getMCAnswerForDivid(divid) {
-var len = localStorage.length;
-
-    //retrieving answer from local storage
-    if (len > 0) {
-      var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
-      if (ex !== null)
-      {
-      	var arr = ex.split(";");
-      	return arr[0];
-      }
-    }
-    return null;
 }
 
-var checkTimedRadio = function (divid) {
-    // This function repopulates a MCMF question with a user's previous answer,
-    // which was previously stored into local storage
-
-    var len = localStorage.length;
-
-    //retrieving data from local storage
-    if (len > 0) {
-      var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
-      if (ex !== null)
-      {
-      	var arr = ex.split(";");
-      	var str = divid + "_opt_" + arr[0];
-      	$("#" + str).attr("checked", "true");
-      	document.getElementById(str).disabled = true;
-      } // end if not null
-    } // end if (len > 0)
+RunestoneBase.prototype.logBookEvent = function(info) {
+    console.log("logging event " + this.divid);
 };
 
-var tookTimedExam = function () {
+RunestoneBase.prototype.logRunEvent = function(info) {
+    console.log("running " + this.divid);
+};
 
-   $("#output").css({
-			'width': '50%',
-			'margin': '0 auto',
-			'background-color': '#DFF0D8',
-			'text-align': 'center',
-			'border': '2px solid #DFF0D8',
-			'border-radius': '25px'
-		});
 
-		$("#results").css({
-			'width': '50%',
-			'margin': '0 auto',
-			'background-color': '#DFF0D8',
-			'text-align': 'center',
-			'border': '2px solid #DFF0D8',
-			'border-radius': '25px'
-		});
 
-        $(".tooltipTime").css({
-		    'margin': '0',
-		    'padding': '0',
-		    'background-color': 'black',
-		    'color' : 'white'
-		});
 
-   var len = localStorage.length;
-   var pageName = getPageName();
-   if (len > 0) {
-      if (localStorage.getItem(eBookConfig.email + ":timedExam:" + pageName) !== null)
-         return 1;
-      else return 0;
-   }
-   else return 0;
+
+//Fill-in-the-blank part
+
+var FITBList = {};  //Fill-in-the-blank dictionary
+
+FITB.prototype = new RunestoneBase();
+
+//<p> FITB constructor
+function FITB(opts) {
+    if (opts) {
+        this.init(opts);
+    }
 }
 
-var checkMultipleSelect = function (divid) {
-    // This function repopulates MCMA questions with a user's previous answers,
-    // which were stored into local storage.
+FITB.prototype.init = function(opts) {
+    RunestoneBase.apply(this, arguments);
+    var orig = opts.orig;  //entire <p> element
+    this.origElem = orig;
+    this.divid = orig.id;
+    this.question = null;
+    this.feedbackArray = [];                           //Array of arrays--each inside array contains 2 elements: the regular expression, then text
+    this.correctAnswer = $('[data-answer]').text();         //Correct answer--is a regular expression
+    this.casei = false;                               //Case insensitive--boolean
+    if ($(this.origElem).data('casei') === true) {
+        this.casei = true;
+    }
 
-    var len = localStorage.length;
-    if (len > 0) {
+    this.findQuestion();
+    this.populateFeedbackArray();
+    this.createFITBElement();
+    this.checkPreviousFIB();
+}
 
-    	var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
-    	if (ex !== null) {
-           var arr = ex.split(";");
-           var answers = arr[0].split(",");
-           for (var a = 0; a < answers.length; a++) {
-              var str = divid + "_opt_" + answers[a];
-              $("#" + str).attr("checked", "true");
-              document.getElementById(divid + '_bcomp').disabled = false;
-           } // end for
-        } // end if
-    } // end if len > 0
-};
 
-var checkPreviousFIB = function (divid) {
+FITB.prototype.findQuestion = function() {     //Gets question text and puts it into this.question
+    var correctAnswerId = $('[data-answer]').attr("id");
+
+    var delimiter = document.getElementById(correctAnswerId).outerHTML;
+    var fulltext = $(this.origElem).html();
+    var temp = fulltext.split(delimiter);
+    this.question = temp[0];
+}
+
+
+FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedbackArray
+        var _this = this;
+    $('[data-feedback=text]').each( function(index) {
+        var tempArr = [];
+        var tempFor = $(this).attr('for');
+        var tempRegEx = document.getElementById(tempFor).innerHTML;
+        tempArr.push(tempRegEx);
+        tempArr.push(this.innerHTML);
+        _this.feedbackArray.push(tempArr);
+
+    });
+}
+
+FITB.prototype.createFITBElement = function() {      //Creates input element that is appended to DOM
+    var _this = this;
+    var inputDiv = document.createElement('div');
+    $(inputDiv).text(this.question);
+    $(inputDiv).addClass("alert alert-warning");
+    inputDiv.id = this.divid;
+    var newInput = document.createElement('input');
+    var feedbackDiv = document.createElement('div');
+
+    $(newInput).attr({
+        'type' : 'text',
+        'id' : this.divid + 'blank',
+        });
+
+    feedbackDiv.id = this.divid + '_feedback';
+    var butt = document.createElement('button');         //Check me button
+    butt.textContent = "Check Me";
+    $(butt).attr({
+            "class" : "btn btn-success",
+            "name" : "do answer",
+        });
+
+
+    butt.onclick = function() {
+        _this.checkFIBStorage();
+    }
+
+
+    var compButt = document.createElement("button");       //Compare me button
+    $(compButt).attr({
+        "class":"btn btn-default",
+        "id":this.origElem.id+"_bcomp",
+        "disabled":"",
+        "name":"compare",
+    });
+    compButt.textContent = "Compare Me";
+    compButt.onclick = function() {
+        _this.compareFITBAnswers();
+    }
+
+    inputDiv.appendChild(document.createElement('br'));
+    inputDiv.appendChild(newInput);
+    inputDiv.appendChild(document.createElement('br'));
+    inputDiv.appendChild(butt);
+    inputDiv.appendChild(compButt);
+
+    inputDiv.appendChild(feedbackDiv);
+
+    $(this.origElem).replaceWith(inputDiv);
+
+
+}
+
+FITB.prototype.checkPreviousFIB = function() {
     // This function repoplulates FIB questions with a user's previous answers,
     // which were stored into local storage
 
     var len = localStorage.length;
     if (len > 0) {
-    	var ex = localStorage.getItem(eBookConfig.email + ":" + divid);
-    	if (ex !== null) {
+        var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid);
+        if (ex !== null) {
            var arr = ex.split(";");
-           var str = divid + "blank";
+           var str = this.divid + "blank";
            $("#" + str).attr("value", arr[0]);
-           document.getElementById(divid + '_bcomp').disabled = false;
+           document.getElementById(this.divid + '_bcomp').disabled = false;
         } // end if ex not null
     } // end if len > 0
 };
 
-var checkMCMAStorage = function (divid, expected, feedbackArray) {
-    var given;
-    var feedback = "";
-    var correctArray = expected.split(",");
-    correctArray.sort();
-    var givenArray = [];
-    var correctCount = 0;
-    var correctIndex = 0;
-    var givenIndex = 0;
-    var givenlog = '';
-    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-
-    // loop through the checkboxes
-    for (var i = 0; i < buttonObjs.length; i++) {
-        if (buttonObjs[i].checked) { // if checked box
-            given = buttonObjs[i].value; // get value of this button
-            givenArray.push(given)    // add it to the givenArray
-            feedback += given + ": " + feedbackArray[i] + "<br />"; // add the feedback
-            givenlog += given + ",";
+FITB.prototype.checkFIBStorage = function() {                //Starts chain of functions which ends with feedBack() displaying feedback to user
+    var given = document.getElementById(this.divid + "blank").value;
+    // update number of trials??
+    // log this to the db
+    modifiers = '';
+    if (this.casei) {
+        modifiers = 'i'
+    }
+    var patt = RegExp(this.correctAnswer, modifiers);
+    var isCorrect = patt.test(given);
+    if (!isCorrect) {
+        fbl = this.feedbackArray;
+        for (var i = 0; i < fbl.length; i++) {
+            patt = RegExp(fbl[i][0]);
+            if (patt.test(given)) {
+                fbl = fbl[i][1];
+                break;
+            }
         }
     }
-    // sort the given array
-    givenArray.sort();
-
-    while (correctIndex < correctArray.length &&
-        givenIndex < givenArray.length) {
-        if (givenArray[givenIndex] < correctArray[correctIndex]) {
-            givenIndex++;
-        }
-        else if (givenArray[givenIndex] == correctArray[correctIndex]) {
-            correctCount++;
-            givenIndex++;
-            correctIndex++;
-        }
-        else {
-            correctIndex++;
-        }
-
-    } // end while
-
-    // save the data into local storage
-    var storage_arr = new Array();
-    storage_arr.push(givenArray);
-    storage_arr.push(expected);
-    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
-
-    // log the answer
-    var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
-        (correctCount == correctArray.length ? 'correct' : 'no');
-    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
-
-    // give the user feedback
-    feedBackMCMA('#' + divid + '_feedback', correctCount,
-        correctArray.length, givenArray.length, feedback);
-
-    document.getElementById(divid + '_bcomp').disabled = false;
-};
-
-var checkMCMFStorage = function (divid, expected, feedbackArray) {
-    var given;
-    var feedback = null;
-    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-    for (var i = buttonObjs.length - 1; i >= 0; i--) {
-        if (buttonObjs[i].checked) {
-            given = buttonObjs[i].value;
-            feedback = feedbackArray[i];
-        }
-    }
-
-    //Saving data in local storage
+    // store the answer in local storage
     var storage_arr = new Array();
     storage_arr.push(given);
-    storage_arr.push(expected);
-    localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
+    storage_arr.push(this.correctAnswer);
+    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
 
-    // log the answer
-    var answerInfo = 'answer:' + given + ":" + (given == expected ? 'correct' : 'no');
-    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
-
-    // give the user feedback
-    feedBackMCMF('#' + divid + '_feedback', given == expected, feedback);
-    document.getElementById(divid + '_bcomp').disabled = false;
-};
-
-var correctArray = [];
-var feedbackArray = [];
-var divArray = [];
-
-
-var populateArrays = function (divid, expected, feedbackList){
-	correctArray.push(expected);
-	divArray.push(divid);
-	feedbackArray.push(feedbackList);
-};
-
-function getPageName() {
-
-    var pageName = window.location.pathname.split("/").slice(-1);
-	var name = pageName[0];
-	return name;
-}
-
-function checkTimedMCMFStorage(){
-    var given;
-    var divid;
-    var feedback = null;
-    var hasAns;
-    var expected;
-    var numQuest = divArray.length;
-    var op;
-    var correct = 0;
-    var skipped = 0;
-    var answer = " ";
-
-    if(!taken) {
-	$('#pause').attr('disabled',true);
-	$('#finish').attr('disabled',true);
-
-	// loop through the items in the divArray
-    for (var j = 0; j<= divArray.length -1;j++){
-
-	    divid = divArray[j];
-	    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-	    hasAns = 0; // reset each iteration of the loop
-	    answer = " "; // reset each iteration of the loop
-
-	    // loop through each option since we are showing feedback for each option
-	    for (var i = 0 ; i <=buttonObjs.length - 1; i++)
-	    {
-		    given = buttonObjs[i].value;
-		    expected = correctArray[j];
-		    feedback = feedbackArray[j][i];
-
-		    // give the user feedback
-		    op = String.fromCharCode(i+97);
-		    var selected = buttonObjs[i].checked
-		    buttonObjs[i].disabled = true;
-		    feedBackTimedMCMF('#' + divid + '_eachFeedback_' + op, given == expected, feedback);
-
-		    // if this was the selected choice
-		    if (selected)
-		    {
-		       answer = given;
-               hasAns = selected;
-
-               // log the answer
-	           var answerInfo = 'answer:' + answer + ":" + (given == expected ? 'correct' : 'no');
-	           logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': divid});
-
-	    	   if (given == expected)
-	    	   {
-	    	      correct++;
-	    	   }
-	    	} // end if selected
-	     } // end for
-
-	     // if no answer was selected
-	     if(!hasAns) {
-	       given = 1;
-	       expected = 0;
-		   feedback = '';
-		   skipped++;
-	    }
-
-	    //Save answer in local storage
-	    if (hasAns) {
-	       var storage_arr = new Array();
-	       storage_arr.push(answer);
-	       storage_arr.push(expected);
-	       localStorage.setItem(eBookConfig.email + ":" + divid, storage_arr.join(";"));
-	    }
-
-    }
-
-    // show the results
-	var percent = (correct/numQuest)*100;
-	var wrong = numQuest - correct - skipped;
-	document.getElementById("results").innerHTML = "Num Correct: " + correct + " Num Wrong: " + wrong + " Num Skipped: " + skipped + " Percent Correct: " + percent + "%";
-	var result = correct + ";" + wrong + ";" + skipped;
-	logBookEvent({'event': 'timedExam', 'act': 'end:' + correct + ":" + wrong + ":" + skipped, 'div_id': getPageName()});
-	localStorage.setItem(eBookConfig.email + ":timedExamResult:" + getPageName(), result);
-
-	taken = 1;
-    running = 0;
-  } // end if !taken
-
-};
-
-function resetTimedMCMFStorage(){
-    var given;
-    var divid;
-    var feedback = null;
-    var expected;
-    var op;
-
-	// loop through the items in the divArray
-    for (var j = 0; j<= divArray.length -1;j++) {
-
-	    divid = divArray[j];
-	    var buttonObjs = document.forms[divid + "_form"].elements.group1;
-
-	    // loop through each option since we are showing feedback for each option
-	    for (var i = 0 ; i <=buttonObjs.length - 1; i++)
-	    {
-		    op = String.fromCharCode(i+97);
-		    buttonObjs[i].disabled = true;
-		    given = buttonObjs[i].value;
-		    expected = correctArray[j];
-		    feedback = feedbackArray[j][i];
-		    feedBackTimedMCMF('#' + divid + '_eachFeedback_' + op, given == expected, feedback);
-	     } // end for
-
-    } // end for loop through divArray
-
-
-    var result = localStorage.getItem(eBookConfig.email + ":timedExamResult:" + getPageName());
-    if (result !== null)
-    {
-       var resultArr = result.split(";");
-       var correct = resultArr[0];
-       var wrong = resultArr[1];
-       var skipped = resultArr[2];
-       var percent = correct / divArray.length * 100;
-       document.getElementById("results").innerHTML = "Num Correct: " + correct + " Num Wrong: " + wrong + " Num Skipped: " + skipped + " Percent Correct: " + percent + "%";
-    }
-
+    feedBack('#' + this.divid + '_feedback', isCorrect, this.feedbackArray);
+    var answerInfo = 'answer:' + given + ":" + (isCorrect ? 'correct' : 'no');
+    logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
+    document.getElementById(this.divid + '_bcomp').disabled = false;
 };
 
 
-var feedBackTimedMCMF = function (divid, correct, feedbackText) {
-    if (correct) {
-        $(divid).html('Correct Answer.  ' + feedbackText);
-        $(divid).attr('class','alert alert-success');
-
-    } else {
-        if (feedbackText == null) {
-            feedbackText = '';
-        }
-        $(divid).html("Incorrect Answer.  " + feedbackText);
-        $(divid).attr('class','alert alert-danger');
-    }
-};
-
-var checkIfFinished = function () {
-   if(tookTimedExam())
-   {
-        $('#start').attr('disabled',true);
-		$('#pause').attr('disabled',true);
-		$('#finish').attr('disabled',true);
-		resetTimedMCMFStorage();
-		$("#timed_Test").show();
-	}
-};
-
-
-var paused = 0;
-var running = 0;
-var done = 0;
-var taken = 0;
-
-
-function start(){
-
-	if(tookTimedExam() == 0){
-
-		$('#start').attr('disabled',true);
-		if(running == 0 && paused == 0){
-			running = 1;
-			$("#timed_Test").show();
-			//document.getElementById("button_show").innerHTML = "Currently Taking Timed Quiz";
-			increment();
-			var name = getPageName();
-	        logBookEvent({'event': 'timedExam', 'act': 'start', 'div_id': name});
-	        localStorage.setItem(eBookConfig.email + ":timedExam:" + name, "started");
-		}
-	}
-};
-
-
-
-function pause(){
-	if(done == 0){
-		if(running == 1){
-			running = 0;
-			paused = 1;
-			//document.getElementById("button_show").innerHTML = "Timed Quiz Paused/Not Started";
-			document.getElementById("pause").innerHTML = "Resume";
-			$("#timed_Test").hide();
-
-
-		}else{
-			running = 1;
-			paused = 0;
-			increment();
-			//document.getElementById("button_show").innerHTML = "Currently Taking Timed Quiz";
-			document.getElementById("pause").innerHTML = "Pause";
-			$("#timed_Test").show();
-
-		}
-	}
-};
-
-function getTime() {
-        var mins = Math.floor(time/60);
-		var secs = Math.floor(time) % 60;
-
-		if(mins<10){
-			mins = "0" + mins;
-		}
-		if(secs<10){
-			secs = "0" + secs;
-		}
-		return mins + ":" + secs;
-}
-
-function showTime(time){
-		var mins = Math.floor(time/60);
-		var secs = Math.floor(time) % 60;
-
-		if(mins<10){
-			mins = "0" + mins;
-		}
-		if(secs<10){
-			secs = "0" + secs;
-		}
-
-		document.getElementById("output").innerHTML = "Time Remaining  " + mins + ":" + secs;
-		var timeTips = document.getElementsByClassName("timeTip");
-			for(var i = 0; i<= timeTips.length - 1; i++){
-				timeTips[i].title = mins + ":" + secs;
-		}
-}
-
-function increment(){
-
-    // if running (not paused) and not taken
-	if(running == 1 & !taken) {
-
-		setTimeout(function() {
-		time--;
-		showTime(time);
-
-		   if(time>0){
-			  increment();
-
-			// ran out of time
-		   }else{
-			   running = 0;
-			   done = 1;
-
-			   if(taken == 0){
-			     checkTimedMCMFStorage();
-			   }
-		  }
-		},1000);
-	}
-
-};
-
-function instructorMchoiceModal(data) {
-    // data.reslist -- student and their answers
-    // data.answerDict  -- answers and count
-    // data.correct - correct answer
-    var res = '<table><tr><th>Student</th><th>Answer(s)</th></tr>';
-    for (var i in data) {
-        res += '<tr><td>' + data[i][0] + '</td><td>' + data[i][1] + '</td></tr>';
-    }
-    res += '</table>';
-    return res;
-}
-
-function compareModal(data, status, whatever) {
-    var datadict = eval(data)[0];
-    var answers = datadict.answerDict;
-    var misc = datadict.misc;
-    var kl = Object.keys(answers).sort();
-
-    var body = '<table>';
-    body += '<tr><th>Answer</th><th>Percent</th></tr>';
-
-    var theClass= '';
-    for (var k in kl) {
-        if (kl[k] == misc.correct) {
-            theClass = 'success';
-        } else {
-            theClass = 'info';
-        }
-
-        body += '<tr><td>' + kl[k] + '</td><td class="compare-me-progress">';
-        pct = answers[kl[k]] + '%';
-        body += '<div class="progress">';
-        body += '  <div class="progress-bar progress-bar-' + theClass + '" style="width:'+pct+';">' + pct;
-        body += '  </div>';
-        body += '</div></td></tr>';
-    }
-    body += '</table>';
-
-    if (misc['yourpct'] !== 'unavailable') {
-        body += '<br /><p>You have ' + misc['yourpct'] + '% correct for all questions</p>';
-    }
-
-    if (datadict.reslist !== undefined) {
-        body += instructorMchoiceModal(datadict.reslist);
-    }
-
-    var html = '<div class="modal fade">' +
-        '  <div class="modal-dialog compare-modal">' +
-        '    <div class="modal-content">' +
-        '      <div class="modal-header">' +
-        '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-        '        <h4 class="modal-title">Distribution of Answers</h4>' +
-        '      </div>' +
-        '      <div class="modal-body">' +
-        body +
-        '      </div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>';
-
-    el = $(html);
-    el.modal();
-}
-
-function compareAnswers(div_id) {
+FITB.prototype.compareFITBAnswers = function() {       //Called by compare me button--calls compareFITB
     data = {};
-    data.div_id = div_id;
+    data.div_id = this.divid;
     data.course = eBookConfig.course;
-    jQuery.get(eBookConfig.ajaxURL + 'getaggregateresults', data, compareModal);
+    jQuery.get(eBookConfig.ajaxURL + 'gettop10Answers', data, this.compareFITB);
 }
 
-function compareFITB(data, status, whatever) {
+FITB.prototype.compareFITB = function(data, status, whatever) {
     var answers = eval(data)[0];
     var misc = eval(data)[1];
 
@@ -798,66 +218,394 @@ function compareFITB(data, status, whatever) {
     el.modal();
 }
 
-function compareFITBAnswers(div_id) {
-    data = {};
-    data.div_id = div_id;
-    data.course = eBookConfig.course;
-    jQuery.get(eBookConfig.ajaxURL + 'gettop10Answers', data, compareFITB);
+
+
+//Multiple Choice part
+
+var mcList = {};  //Multiple Choice dictionary
+
+MultipleChoice.prototype = new RunestoneBase();
+
+//<ul> constructor
+function MultipleChoice(opts) {
+    if (opts) {
+        this.init(opts);
+    }
+}
+
+MultipleChoice.prototype.init = function(opts) {
+    RunestoneBase.apply(this, arguments);
+    var orig = opts.orig;  //entire <ul> element
+    this.origElem = orig;
+
+    this.multipleanswers = false
+    this.divid = orig.id;
+    if ($(this.origElem).data('multipleanswers') === true) {
+        this.multipleanswers = true;
+    }
+
+    this.answerList = [];
+    this.correctList = [];
+    this.feedbackList = [];
+    this.question = null;
+
+    this.findAnswers();
+    this.findQuestion();
+    this.findFeedbacks();
+    this.createCorrectList();
+    this.createMCForm();
+    this.restoreLocalAnswers();
+
+}
+
+MultipleChoice.prototype.findQuestion = function() {     //Takes full text
+    var firstanswerid = this.answerList[0].id;
+    var delimiter = document.getElementById(firstanswerid).outerHTML;
+    var fulltext = $(this.origElem).html();
+    var temp = fulltext.split(delimiter);
+    this.question = temp[0];
+
+}
+
+MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects and pushes them to answerList
+    //ID, Correct bool, Content (text)
+    var _this = this;
+    $('[data-component=answer]').each(function(index) {
+        var answer_id = $(this).attr('id');
+        var is_correct = false;
+        if ( $(this).is("[data-correct]") ) {  //If data-correct attribute exists, answer is correct
+            is_correct = true;
+        }
+        var answer_text = $(this).text();
+        var answer_object = {id : answer_id, correct : is_correct, content : answer_text};
+        _this.answerList.push(answer_object);
+    });
+}
+
+MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tuple to dictionary with for_id as key
+    //for_id, content (text)
+    var _this = this
+    $('[data-component=feedback]').each(function(index) {
+        var for_id = $(this).attr('for');  //selects 'for' attribute
+        var feedback_text = $(this).text();
+        _this.feedbackList.push(feedback_text);
+    });
+}
+
+
+MultipleChoice.prototype.createCorrectList = function() {   //Creates array that holds the ID's of correct answers
+
+    for (var i=0; i < this.answerList.length; i++) {
+        if (this.answerList[i].correct) {
+            this.correctList.push(this.answerList[i].id);
+        }
+    }
 }
 
 
 
-function showGradeSummary(data, status, whatever) {
-    var report = eval(data)[0];
-    // check for report['message']
-    if (report['grade']) {
-	body = "<h4>Grade Report</h4>" +
-               "<p>This assignment: " + report['grade'] + "</p>" +
-               "<p>" + report['comment'] + "</p>" +
-	       "<p>Number of graded assignments: " + report['count'] + "</p>" +
-	       "<p>Average score: " +  report['avg'] + "</p>"
+MultipleChoice.prototype.createMCForm = function() {    //Creates form that holds the question/answers
+    var formDiv = document.createElement("div");
+    $(formDiv).text(this.question);
+    $(formDiv).addClass("alert alert-warning");
+    formDiv.id = this.divid;
+    var newForm = document.createElement("form");
+    var feedbackDiv = document.createElement("div");
+    var origid = this.origElem.id;
+
+    newForm.id = this.divid + "_form";
+    $(newForm).attr({
+        "method" : "get",
+        "action" : "",
+        "onsubmit" : "return false;"
+    });
+    formDiv.appendChild(newForm);
+    feedbackDiv.id = this.divid + "_feedback";
+
+    var input_type = "radio";
+    if (this.multipleanswers) {
+        input_type = "checkbox";
+    }
+
+    for (var i=0; i < this.answerList.length; i++){       //Create form input elements
+        var input = document.createElement("input");
+        var label = document.createElement("label");
+        var br = document.createElement("br");
+        input.type = input_type;
+        input.name = "group1";
+        input.value = String(i);
+        var tmpid = String(this.divid) + "_opt_" + String(i);    //what makes id's unique is the index of where it is in answerList
+        input.id = tmpid;
+        $(label).attr('for', String(tmpid));
+        $(label).text(this.answerList[i].content);
+
+
+        newForm.appendChild(input);
+        newForm.appendChild(label);
+        newForm.appendChild(br);
+    }
+
+    var butt = document.createElement("button");
+
+    butt.textContent = "Check Me";
+    $(butt).attr({
+            "class" : "btn btn-success",
+            "name" : "do answer",
+        });
+
+    var _this = this;
+    if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
+        var expectedArray = [];
+
+        for (var i=0; i<_this.answerList.length; i++) {
+            var tempAnswerId = _this.answerList[i].id;
+            var notFound = true
+            var j = 0;
+            while (notFound && j < _this.correctList.length) {
+                if (tempAnswerId == _this.correctList[j]) {
+                    expectedArray.push(i);
+                    notFound = false;
+                }
+                j++;
+            }
+        }
+        this.expectedString = expectedArray.join();
+
+        butt.onclick = function() {
+            _this.checkMCMAStorage();
+        }
 
     } else {
-	body = "<h4>You must be Logged in to see your grade</h4>";
+        var found = false;
+        var i=0;
+        while (!found) {
+            if (this.correctList[0] == this.answerList[i].id){
+                found = true;
+            }
+            i++;
+        }
+        this.correctAnswerIndex = i-1;
+
+        butt.onclick = function() {
+            _this.checkMCMFStorage();
+        };
+
+
     }
-    var html = '<div class="modal fade">' +
-        '  <div class="modal-dialog compare-modal">' +
-        '    <div class="modal-content">' +
-        '      <div class="modal-header">' +
-        '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-        '        <h4 class="modal-title">Assignment Feedback</h4>' +
-        '      </div>' +
-        '      <div class="modal-body">' +
-        body +
-        '      </div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>';
 
-    el = $(html);
-    el.modal();
+    var compButt = document.createElement("button");
+    $(compButt).attr({
+        "class":"btn btn-default",
+        "id":this.origElem.id+"_bcomp",
+        "disabled":"",
+        "name":"compare",
+    });
+    compButt.textContent = "Compare Me";
+    compButt.onclick = function() {
+        compareAnswers(this.divid);
+    }
+
+    newForm.appendChild(butt);
+    newForm.appendChild(compButt);
+
+    var br = document.createElement("br");
+    formDiv.appendChild(br);
+    formDiv.appendChild(feedbackDiv);
 
 
-}
-
-function createGradeSummary(div_id) {
-    // get grade and comments for this assignment
-    // get summary of all grades for this student
-    // display grades in modal window
-    var data = {'div_id':div_id}
-    jQuery.get(eBookConfig.ajaxURL + 'getassignmentgrade', data, showGradeSummary);
+    $(this.origElem).replaceWith(formDiv);
 
 }
 
+MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local storage
+    if (this.multipleanswers) {
+        this.checkMultipleSelect();
+    } else {
+        this.checkRadio();
+    }
+}
+MultipleChoice.prototype.checkMultipleSelect = function () {
+    // This function repopulates MCMA questions with a user's previous answers,
+    // which were stored into local storage.
+    var _this = this;
+    var len = localStorage.length;
+    if (len > 0) {
+
+        var ex = localStorage.getItem(eBookConfig.email + ":" + _this.divid);
+        if (ex !== null) {
+            var arr = ex.split(";");
+            var answers = arr[0].split(",");
+            for (var a = 0; a < answers.length; a++) {
+                var str = "#"+_this.divid + "_opt_" + answers[a];
+                $(str).attr("checked", "true");
+                document.getElementById(_this.divid + '_bcomp').disabled = false;
+            } // end for
+        } // end if
+    } // end if len > 0
+};
+
+MultipleChoice.prototype.checkRadio = function () {
+    // This function repopulates a MCMF question with a user's previous answer,
+    // which was previously stored into local storage
+    var _this = this
+    var len = localStorage.length;
+
+    //retrieving data from local storage
+    if (len > 0) {
+      var ex = localStorage.getItem(eBookConfig.email + ":" + _this.divid);
+      if (ex !== null)
+      {
+        var arr = ex.split(";");
+        var str = "#"+_this.divid + "_opt_" + arr[0];
+        $(str).attr("checked", "true");
+        document.getElementById(_this.divid + '_bcomp').disabled = false;
+      } // end if not null
+    } // end if (len > 0)
+};
+
+MultipleChoice.prototype.checkMCMAStorage = function () {
+    var given;
+    var feedback = "";
+    var correctArray = this.expectedString.split(",");
+    correctArray.sort();
+    var givenArray = [];
+    var correctCount = 0;
+    var correctIndex = 0;
+    var givenIndex = 0;
+    var givenlog = '';
+    var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+
+    // loop through the checkboxes
+    var _this = this
+    for (var i = 0; i < buttonObjs.length; i++) {
+        if (buttonObjs[i].checked) { // if checked box
+            given = buttonObjs[i].value; // get value of this button
+            givenArray.push(given)    // add it to the givenArray
+            feedback += given + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
+            givenlog += given + ",";
+        }
+    }
+    // sort the given array
+    givenArray.sort();
+
+    while (correctIndex < correctArray.length &&
+        givenIndex < givenArray.length) {
+        if (givenArray[givenIndex] < correctArray[correctIndex]) {
+            givenIndex++;
+        }
+        else if (givenArray[givenIndex] == correctArray[correctIndex]) {
+            correctCount++;
+            givenIndex++;
+            correctIndex++;
+        }
+        else {
+            correctIndex++;
+        }
+
+    } // end while
+
+    // save the data into local storage
+    var storage_arr = new Array();
+    storage_arr.push(givenArray);
+    storage_arr.push(this.expectedArray);
+    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
+
+    // log the answer
+    var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
+        (correctCount == correctArray.length ? 'correct' : 'no');
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': _this.divid});
+
+    // give the user feedback
+    this.feedBackMCMA(correctCount,
+        correctArray.length, givenArray.length, feedback);
+
+    document.getElementById(this.divid + '_bcomp').disabled = false;
+};
+
+MultipleChoice.prototype.feedBackMCMA = function (numCorrect, numNeeded, numGiven, feedbackText) {
+    tmpdivid = "#"+this.divid + "_feedback";
+    var answerStr = "answers";
+    if (numGiven == 1) answerStr = "answer";
+
+    if (numCorrect == numNeeded && numNeeded == numGiven) {
+        $(tmpdivid).html('Correct!  <br />' + feedbackText);
+        $(tmpdivid).attr('class', 'alert alert-success');
+    } else {
+        $(tmpdivid).html("Incorrect.  " + "You gave " + numGiven +
+            " " + answerStr + " and got " + numCorrect + " correct of " +
+            numNeeded + " needed.<br /> " + feedbackText);
+        $(tmpdivid).attr('class', 'alert alert-danger');
+    }
+};
+
+MultipleChoice.prototype.checkMCMFStorage = function () {
+    var given;
+    var feedback = null;
+    var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+    for (var i = buttonObjs.length - 1; i >= 0; i--) {
+        if (buttonObjs[i].checked) {
+            given = buttonObjs[i].value;
+            feedback = this.feedbackList[i];
+        }
+    }
+
+    //Saving data in local storage
+    var storage_arr = new Array();
+    storage_arr.push(given);
+    storage_arr.push(this.correctAnswerIndex);
+    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
+
+    // log the answer
+    var answerInfo = 'answer:' + given + ":" + (given == this.correctAnswerIndex ? 'correct' : 'no');
+    logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
+
+    // give the user feedback
+    this.feedBackMCMF(given == this.correctAnswerIndex, feedback);
+    document.getElementById(this.divid + '_bcomp').disabled = false;
+};
+
+MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
+    var tmpdivid = "#"+this.divid+"_feedback";
+    if (correct) {
+        $(tmpdivid).html('Correct!  ' + feedbackText);
+        $(tmpdivid).attr('class','alert alert-success');
+    } else {
+        if (feedbackText == null) {
+            feedbackText = '';
+        }
+        $(tmpdivid).html("Incorrect.  " + feedbackText);
+        $(tmpdivid).attr('class','alert alert-danger');
+    }
+};
+
+
+
+var feedBack = function (divid, correct, feedbackText) {    //Displays feedback on page--miscellaneous function that can be used by multple objects
+    if (correct) {
+        $(divid).html('You are Correct!');
+        //$(divid).css('background-color', '#C8F4AD');
+        $(divid).attr('class','alert alert-success');
+    } else {
+        if (feedbackText == null) {
+            feedbackText = '';
+        }
+        $(divid).html("Incorrect.  " + feedbackText);
+        //$(divid).css('background-color', '#F4F4AD');
+        $(divid).attr('class','alert alert-danger');
+    }
+};
 
 
 
 
 
+$(document).ready(function() {
+    $('[data-component=fillintheblank]').each(function(index){  //FITB
+        FITBList[this.id] = new FITB({'orig':this});
+    });
 
-// for each form in the div
-//    get the id of the form
-//    call checkMe on the form...  -- need metadata what kind of question what parms etc
-//    hidden fields for meta data??? each form defines a checkme function with no parameters
-//    that calls the actual function that checks the answer properly??
-// summarize
+    $('[data-component=multiplechoice]').each( function(index ){  //MC
+        mcList[this.id] = new MultipleChoice({'orig':this});
+    });
+
+});
