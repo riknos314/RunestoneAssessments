@@ -114,43 +114,17 @@ class MChoiceMF(Assessment):
             ...
             """
         TEMPLATE_START = '''
-            <div id="%(divid)s" class="alert alert-warning">
+            <ul data-component="multiplechoice" data-multipleanswers="false" id="%(divid)s">
             '''
 
         OPTION = '''
-            <input type="radio" name="group1" value="%(alabel)s" id="%(divid)s_opt_%(alabel)s" />
-            <label for= "%(divid)s_opt_%(alabel)s">  %(alabel)s) %(atext)s</label><br />
+            <li data-component="answer" id="%(divid)s_opt_%(alabel)s" ></li>
+            <li data-component="feedback" for="%(divid)s_opt_%(alabel)s"></li>
             '''
 
         TEMPLATE_END = '''
-
-            <script>
-            $(document).ready(function(){checkRadio('%(divid)s');});
-            </script>
-            <button class='btn btn-success' name="do answer" onclick="checkMCMFStorage('%(divid)s','%(correct)s',%(feedback)s)">Check Me</button>
-            <button class='btn btn-default' id="%(divid)s_bcomp" disabled name="compare" onclick="compareAnswers('%(divid)s');">Compare Me</button>
-            </form><br />
-            <div id="%(divid)s_feedback">
-            </div>
-            </div>
+            </ul>
             '''
-
- 
-
-    <ul data-component="multiplechoice" data-multipleanswers="false" id="question-1">
-    The Question can go right here.
-        <li data-component="answer" id="123" >Answer One</li>
-        <li data-component="feedback" for="123">Feedback for One</li>
-
-        <li data-component="answer" id="456">Answer Two</li>
-        <li data-component="feedback" for="456">Feedback for Two</li>
-
-        <li data-component="answer" id="789" data-correct>Answer Three</li>
-        <li data-component="feedback" for="789">Feedback for Three</li>
-
-    </ul>
-
-
 
         super(MChoiceMF,self).run()
 
