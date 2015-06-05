@@ -1,8 +1,5 @@
-Development repository for the Multiple choice, multiple feedback element for Runestone Interactive.
+# RunestoneJSComponents
+Implementing javascript-rendered versions of the Runestone Components
 
-To try this out quickly use [bower](http://bower.io/#install-bower) to install these dependencies.
-
-    bower install codemirror
-    bower install skulpt
-    bower install jquery
-    bower install jquery-ui
+This is a part of helping free Runestone Components from RestructuredText as outlined in RSE-001
+https://github.com/bnmnetp/runestone/wiki/RSE-0001

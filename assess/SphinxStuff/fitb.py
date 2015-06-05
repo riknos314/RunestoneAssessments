@@ -18,7 +18,7 @@ __author__ = 'bmiller'
 from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
-from .assessbase import *
+from assessbase import *
 import json
 import random
 
@@ -40,7 +40,7 @@ def visit_fitb_node(self,node):
     res = node.template_start % node.fitb_options
 
     self.body.append(res)
-        
+
 
 def depart_fitb_node(self,node):
     #fbl = []
@@ -51,19 +51,18 @@ def depart_fitb_node(self,node):
     #        newpair = (pair[0],p1)
     #        fbl.append(newpair)
 
-    res = ""
 
-    for k in sorted(node.fitb_options.keys()):    #Isaiah's for loop
-        index = 1
-        if 'feedback' in k:
-            node.fitb_options['aLabel'] = index
-            index += 1
-            pair = eval(node.fitb_options[k])
-            p0 = pair[0]
-            p1 = escapejs(pair[1])
-            node.fitb_options['feedExp'] = p0
-            node.fitb_options['feedText'] = p1
-            res += node.template_option % node.fitb_options
+#    for k in sorted(node.fitb_options.keys()):    #Isaiah's for loop
+#        index = 1
+#        if 'feedback' in k:
+#            node.fitb_options['aLabel'] = index
+#            index += 1
+#            pair = eval(node.fitb_options[k])
+#            p0 = pair[0]
+#            p1 = escapejs(pair[1])
+#            node.fitb_options['feedExp'] = p0
+#            node.fitb_options['feedText'] = p1
+#            res += node.template_option % node.fitb_options
                                                         #Endfor Isaiah's for loop
 
 
@@ -71,9 +70,11 @@ def depart_fitb_node(self,node):
         node.fitb_options['casei'] = 'true'
     else:
         node.fitb_options['casei'] = 'false'
-    #node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
-    #res = ""
-    
+    node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
+    print(node.fitb_options)
+
+    res = ""
+
     res += node.template_end % node.fitb_options
 
     self.body.append(res)
@@ -88,13 +89,13 @@ class FillInTheBlank(Assessment):
         'feedback':directives.unchanged,
         'feedback1':directives.unchanged,
         'feedback2':directives.unchanged,
-        'feedback3':directives.unchanged,                   
-        'feedback4':directives.unchanged,  
+        'feedback3':directives.unchanged,
+        'feedback4':directives.unchanged,
         'blankid':directives.unchanged,
         'iscode':directives.flag,
         'casei':directives.flag  # case insensitive matching
     }
-    
+
     def run(self):
         """
             process the fillintheblank directive and generate html for output.
@@ -108,7 +109,7 @@ class FillInTheBlank(Assessment):
             Question text
             ...
             """
-        
+
         TEMPLATE_START = '''
             <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s">
                 <span data-answer id="%(divid)s_answer">%(answer)s</span>
@@ -118,17 +119,11 @@ class FillInTheBlank(Assessment):
                 <span data-feedback="regex" id="feedback%(aLabel)s">%(feedExp)s</span>
                 <span data-feedback="text" for="feedback%(aLabel)s">%(feedText)s</span>
             '''
-        
+
         TEMPLATE_END = '''
             </p>
-            '''   
-    #<p data-component="fillintheblank" data-casei="false" id="blank-1">
-    #    Enter a string that contains the letter 'e'!
+            '''
 
-    #        <span data-answer id="blank-1_answer">e</span>
-    #    <span data-feedback="regex" id="feedback1">.*</span>
-    #    <span data-feedback="text" for="feedback1">There''s not an e in that string!</span>
-    #</p>
         super(FillInTheBlank,self).run()
 
         fitbNode = FITBNode(self.options)
@@ -139,5 +134,3 @@ class FillInTheBlank(Assessment):
         self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [fitbNode]
-
-
