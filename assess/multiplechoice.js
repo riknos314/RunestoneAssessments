@@ -37,6 +37,10 @@ MultipleChoice.prototype.init = function(opts) {
     if ($(this.origElem).data('multipleanswers') === true) {
         this.multipleanswers = true;
     }
+    this.random = false;
+    if ($(this.origElem).is("[data-random]")){
+        this.random = true;
+    }
 
 	this.answerList = [];
     this.correctList = [];
@@ -49,6 +53,7 @@ MultipleChoice.prototype.init = function(opts) {
     this.createCorrectList();
     this.createMCForm();
     this.restoreLocalAnswers();
+
 
 }
 
@@ -120,18 +125,26 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     if (this.multipleanswers) {
         input_type = "checkbox";
     }
+    this.indexArray = [];  //this is used to keep indices correct when using the ramdom function
+    for (var i=0; i<this.answerList.length; i++){ //populate the array with enough indices for the number of answers
+        this.indexArray.push(i);
+    }
+    if (this.random){ //if nessecarry, randomizes the indices, randomizing the order the answers are rendered
+        this.randomizeAnswers();
+    }
 
     for (var i=0; i < this.answerList.length; i++){       //Create form input elements
+        var j = this.indexArray[i];
         var input = document.createElement("input");
         var label = document.createElement("label");
         var br = document.createElement("br");
         input.type = input_type;
         input.name = "group1";
-        input.value = String(i);
-        var tmpid = String(this.divid) + "_opt_" + String(i);    //what makes id's unique is the index of where it is in answerList
+        input.value = String(j);
+        var tmpid = String(this.divid) + "_opt_" + String(j);    //what makes id's unique is the index of where it is in answerList
         input.id = tmpid;
         $(label).attr('for', String(tmpid));
-        $(label).text(this.answerList[i].content);
+        $(label).text(this.answerList[j].content);
 
 
         newForm.appendChild(input);
@@ -210,6 +223,30 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     $(this.origElem).replaceWith(formDiv);
 
 }
+
+MultipleChoice.prototype.randomizeAnswers = function() {
+    var currentIndex = this.indexArray.length, temporaryValue, randomIndex ;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+      // Pick a remaining element...
+      var randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      var temporaryValue = this.indexArray[currentIndex];
+      this.indexArray[currentIndex] = this.indexArray[randomIndex];
+      this.indexArray[randomIndex] = temporaryValue;
+
+      var temporaryFeedback = this.feedbackList[currentIndex];
+      this.feedbackList[currentIndex] = this.feedbackList[randomIndex];
+      this.feedbackList[randomIndex] = temporaryFeedback;
+    }
+
+}
+
+
 
 MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local storage
     if (this.multipleanswers) {
