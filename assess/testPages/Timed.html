@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+    <title></title>
+	<link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/jquery-ui.css"/>
+	<link rel="stylesheet" href="bootstrap.min.css"/>
+	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://interactivepython.org/runestone/static/thinkcspy/_static/bookfuncs.js"></script>
+	<script type="text/javascript" src="../multiplechoice.js"></script>
+	<script type="text/javascript">
+		eBookConfig = {};
+		eBookConfig.host = 'http://interactivepython.org' ? 'http://interactivepython.org' : 'http://127.0.0.1:8000';
+		eBookConfig.app = eBookConfig.host+'/runestone';
+		eBookConfig.ajaxURL = eBookConfig.app+'/ajax/';
+		eBookConfig.course = 'thinkcspy';
+		eBookConfig.logLevel = 10;
+		eBookConfig.loginRequired = false
+		eBookConfig.build_info = "3.1.1";
+		eBookConfig.isLoggedIn = false;
+	</script>
+</head>
+
+<body>
+	<ul data-component="timedAssessment" data-time="15:00" id="timed_1">
+		<ul data-component="timedmultiplechoice" id="question_1">
+			<li data-component="timedanswer" id="123" >Answer One</li>
+			<li data-component="timedfeedback" for="123">Feedback for One</li>
+
+			<li data-component="timedanswer" id="456">Answer Two</li>
+			<li data-component="timedfeedback" for="456">Feedback for Two</li>
+
+			<li data-component="timedanswer" id="789" data-correct>Answer Three</li>
+			<li data-component="timedfeedback" for="789">Feedback for Three</li>
+		</ul>
+
+		<ul data-component="timedmultiplechoice" id="question_2">
+			<li data-component="timedanswer" id="abc" >Answer One</li>
+			<li data-component="timedfeedback" for="abc">Feedback for One</li>
+
+			<li data-component="timedanswer" id="def">Answer Two</li>
+			<li data-component="timedfeedback" for="def">Feedback for Two</li>
+
+			<li data-component="timedanswer" id="ghi" data-correct>Answer Three</li>
+			<li data-component="timedfeedback" for="ghi">Feedback for Three</li>
+		</ul>
+	</ul>
+
+
+</body>

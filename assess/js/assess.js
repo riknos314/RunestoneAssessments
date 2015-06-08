@@ -46,6 +46,7 @@ FITB.prototype.init = function(opts) {
     if ($(this.origElem).data('casei') === true) {
         this.casei = true;
     }
+    this.children = this.origElem.childNodes;
 
     this.findQuestion();
     this.populateFeedbackArray();
@@ -55,9 +56,14 @@ FITB.prototype.init = function(opts) {
 
 
 FITB.prototype.findQuestion = function() {     //Gets question text and puts it into this.question
-    var correctAnswerId = $('[data-answer]').attr("id");
+    for (var i=0; i< this.children.length; i++){
+        if ($(this.children[i]).is("[data-answer]")) {
+            var firstAnswerId = this.children[i].id;
+            break;
+        }
+    }
 
-    var delimiter = document.getElementById(correctAnswerId).outerHTML;
+    var delimiter = document.getElementById(firstAnswerId).outerHTML;
     var fulltext = $(this.origElem).html();
     var temp = fulltext.split(delimiter);
     this.question = temp[0];
@@ -66,15 +72,21 @@ FITB.prototype.findQuestion = function() {     //Gets question text and puts it 
 
 FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedbackArray
         var _this = this;
-    $('[data-feedback=text]').each( function(index) {
+        var AnswerNodeList = [];
+        for (var i=0; i< this.children.length; i++){
+            if ($(this.children[i]).is("[data-feedback=text]")){
+                AnswerNodeList.push(this.children[i]);
+            }
+        }
+    for (var i=0; i<AnswerNodeList.length;i++) {
         var tempArr = [];
-        var tempFor = $(this).attr('for');
+        var tempFor = $(AnswerNodeList[i]).attr('for');
         var tempRegEx = document.getElementById(tempFor).innerHTML;
         tempArr.push(tempRegEx);
-        tempArr.push(this.innerHTML);
+        tempArr.push(AnswerNodeList[i].innerHTML);
         _this.feedbackArray.push(tempArr);
 
-    });
+    };
 }
 
 FITB.prototype.createFITBElement = function() {      //Creates input element that is appended to DOM
@@ -243,7 +255,7 @@ MultipleChoice.prototype.init = function(opts) {
     if ($(this.origElem).data('multipleanswers') === true) {
         this.multipleanswers = true;
     }
-
+    this.children = this.origElem.childNodes;
     this.answerList = [];
     this.correctList = [];
     this.feedbackList = [];
@@ -270,26 +282,39 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
 MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects and pushes them to answerList
     //ID, Correct bool, Content (text)
     var _this = this;
-    $('[data-component=answer]').each(function(index) {
-        var answer_id = $(this).attr('id');
+    var ChildAnswerList = [];
+    for (var i=0; i<_this.children.length; i++){
+        if ($(_this.children[i]).is("[data-component=answer]")){
+            ChildAnswerList.push(_this.children[i]);
+        }
+    }
+    for (var i=0; i<ChildAnswerList.length; i++) {
+
+        var answer_id = $(ChildAnswerList[i]).attr('id');
         var is_correct = false;
-        if ( $(this).is("[data-correct]") ) {  //If data-correct attribute exists, answer is correct
+        if ( $(ChildAnswerList[i]).is("[data-correct]") ) {  //If data-correct attribute exists, answer is correct
             is_correct = true;
         }
-        var answer_text = $(this).text();
+        var answer_text = $(ChildAnswerList[i]).text();
         var answer_object = {id : answer_id, correct : is_correct, content : answer_text};
         _this.answerList.push(answer_object);
-    });
+    };
 }
 
 MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tuple to dictionary with for_id as key
     //for_id, content (text)
     var _this = this
-    $('[data-component=feedback]').each(function(index) {
-        var for_id = $(this).attr('for');  //selects 'for' attribute
-        var feedback_text = $(this).text();
+    var ChildFeedbackList =[];
+    for (var i=0; i< this.children.length; i++){
+        if ($(_this.children[i]).is("[data-component=feedback]")){
+            ChildFeedbackList.push(_this.children[i]);
+        }
+    }
+    for (var i=0; i<ChildFeedbackList.length; i++) {
+        var for_id = $(ChildFeedbackList[i]).attr('for');  //selects 'for' attribute
+        var feedback_text = $(ChildFeedbackList[i]).text();
         _this.feedbackList.push(feedback_text);
-    });
+    };
 }
 
 
