@@ -312,8 +312,10 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
         if (buttonObjs[i].checked) { // if checked box
             given = buttonObjs[i].value; // get value of this button
             givenArray.push(given)    // add it to the givenArray
-            feedback += given + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
             givenlog += given + ",";
+            var givenint = parseInt(given) +1;
+            feedback += givenint + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
+
         }
     }
     // sort the given array

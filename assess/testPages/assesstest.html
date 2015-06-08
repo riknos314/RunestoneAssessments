@@ -25,7 +25,7 @@
 
 </head>
 <body>
-	<ul data-component="multiplechoice" data-multipleanswers="false" id="question-1">
+	<ul data-component="multiplechoice" data-multipleanswers="true" data-random id="question-1">
 	The Question can go right here.
 		<li data-component="answer" id="123" >Answer One</li>
 		<li data-component="feedback" for="123">Feedback for One</li>
@@ -36,14 +36,48 @@
 		<li data-component="answer" id="789" data-correct>Answer Three</li>
 		<li data-component="feedback" for="789">Feedback for Three</li>
 
+		<li data-component="answer" id="1011" data-correct>Answer Four</li>
+		<li data-component="feedback" for="1011">Feedback for Four</li>
+
+		<li data-component="answer" id="1112" data-correct>Answer Five</li>
+		<li data-component="feedback" for="1112">Feedback for Five</li>
+
+
+	</ul>
+	<ul data-component="multiplechoice" data-multipleanswers="true" data-random id="question-2">
+	The Question can go right here.
+		<li data-component="answer" id="abc" >Answer One</li>
+		<li data-component="feedback" for="abc">Feedback for One</li>
+
+		<li data-component="answer" id="def">Answer Two</li>
+		<li data-component="feedback" for="def">Feedback for Two</li>
+
+		<li data-component="answer" id="ghi" data-correct>Answer Three</li>
+		<li data-component="feedback" for="ghi">Feedback for Three</li>
+
+		<li data-component="answer" id="jkl" data-correct>Answer Four</li>
+		<li data-component="feedback" for="jkl">Feedback for Four</li>
+
+		<li data-component="answer" id="mno" data-correct>Answer Five</li>
+		<li data-component="feedback" for="mno">Feedback for Five</li>
+
+
 	</ul>
 
 	<p data-component="fillintheblank" data-casei="false" id="blank-1">
 		Enter a string that contains the letter 'e'!
 
 		<span data-answer id="blank-1_answer">e</span>
-		<span data-feedback="regex" id="feedback1">.*</span>
-		<span data-feedback="text" for="feedback1">There's not an e in that string!</span>
+		<span data-feedback="regex" id="blank-1_feedback1">.*</span>
+		<span data-feedback="text" for="blank-1_feedback1">There's not an e in that string!</span>
+
+	</p>
+	<p data-component="fillintheblank" data-casei="false" id="blank-2">
+		Enter a string that contains the letter 'e'!
+
+		<span data-answer id="blank-2_answer">e</span>
+		<span data-feedback="regex" id="blank-2_feedback1">.*</span>
+		<span data-feedback="text" for="blank-2_feedback1">There's not an e in that string!</span>
 	</p>
 </body>
 
