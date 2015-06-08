@@ -40,13 +40,20 @@ FITB.prototype.init = function(opts) {
     this.origElem = orig;
     this.divid = orig.id;
     this.question = null;
-    this.feedbackArray = [];                           //Array of arrays--each inside array contains 2 elements: the regular expression, then text
-    this.correctAnswer = $('[data-answer]').text();         //Correct answer--is a regular expression
+    this.feedbackArray = [];//Array of arrays--each inside array contains 2 elements: the regular expression, then text
+    this.children = this.origElem.childNodes; //this contains all of the child elements of the entire tag...
+        //... used for ensuring that only things that are part of this instance are being touchedh
+    this.correctAnswer = null;         //Correct answer--is a regular expression
+    for (var i=0; i<this.children.length; i++) {
+        if ($(this.children[i]).is("[data-answer]")) {
+            this.correctAnswer = $([this.children[i]]).text();
+        }
+    }
     this.casei = false;                               //Case insensitive--boolean
     if ($(this.origElem).data('casei') === true) {
         this.casei = true;
     }
-    this.children = this.origElem.childNodes;
+
 
     this.findQuestion();
     this.populateFeedbackArray();
@@ -297,8 +304,9 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
 
 }
 
-MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects and pushes them to answerList
-    //ID, Correct bool, Content (text)
+MultipleChoice.prototype.findAnswers = function() {
+    //Creates answer objects and pushes them to answerList
+    //format: ID, Correct bool, Content (text)
 
     var _this = this;
     var ChildAnswerList = [];
