@@ -100,6 +100,7 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
 	$(newInput).attr({
 		'type' : 'text',
 		'id' : this.divid + 'blank',
+        'class': 'form-control'
 		});
 
 	feedbackDiv.id = this.divid + '_feedback';
