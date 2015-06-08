@@ -234,9 +234,19 @@ FITB.prototype.compareFITB = function(data, status, whatever) {
 
 //Multiple Choice part
 
-var mcList = {};  //Multiple Choice dictionary
+function RunestoneBase() {
 
-MultipleChoice.prototype = new RunestoneBase();
+}
+
+RunestoneBase.prototype.logBookEvent = function(info) {
+    console.log("logging event " + this.divid);
+};
+
+RunestoneBase.prototype.logRunEvent = function(info) {
+    console.log("running " + this.divid);
+};
+
+var mcList = {};  //Multiple Choice dictionary
 
 //<ul> constructor
 function MultipleChoice(opts) {
@@ -255,7 +265,14 @@ MultipleChoice.prototype.init = function(opts) {
     if ($(this.origElem).data('multipleanswers') === true) {
         this.multipleanswers = true;
     }
+
     this.children = this.origElem.childNodes;
+
+    this.random = false;
+    if ($(this.origElem).is("[data-random]")){
+        this.random = true;
+    }
+
     this.answerList = [];
     this.correctList = [];
     this.feedbackList = [];
@@ -267,6 +284,7 @@ MultipleChoice.prototype.init = function(opts) {
     this.createCorrectList();
     this.createMCForm();
     this.restoreLocalAnswers();
+
 
 }
 
@@ -281,6 +299,7 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
 
 MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects and pushes them to answerList
     //ID, Correct bool, Content (text)
+
     var _this = this;
     var ChildAnswerList = [];
     for (var i=0; i<_this.children.length; i++){
@@ -291,6 +310,7 @@ MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects an
     for (var i=0; i<ChildAnswerList.length; i++) {
 
         var answer_id = $(ChildAnswerList[i]).attr('id');
+
         var is_correct = false;
         if ( $(ChildAnswerList[i]).is("[data-correct]") ) {  //If data-correct attribute exists, answer is correct
             is_correct = true;
@@ -303,6 +323,7 @@ MultipleChoice.prototype.findAnswers = function() {  //Creates answer objects an
 
 MultipleChoice.prototype.findFeedbacks = function() {  //Adds each feedback tuple to dictionary with for_id as key
     //for_id, content (text)
+
     var _this = this
     var ChildFeedbackList =[];
     for (var i=0; i< this.children.length; i++){
@@ -351,18 +372,26 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     if (this.multipleanswers) {
         input_type = "checkbox";
     }
+    this.indexArray = [];  //this is used to keep indices correct when using the ramdom function
+    for (var i=0; i<this.answerList.length; i++){ //populate the array with enough indices for the number of answers
+        this.indexArray.push(i);
+    }
+    if (this.random){ //if nessecarry, randomizes the indices, randomizing the order the answers are rendered
+        this.randomizeAnswers();
+    }
 
     for (var i=0; i < this.answerList.length; i++){       //Create form input elements
+        var j = this.indexArray[i];
         var input = document.createElement("input");
         var label = document.createElement("label");
         var br = document.createElement("br");
         input.type = input_type;
         input.name = "group1";
-        input.value = String(i);
-        var tmpid = String(this.divid) + "_opt_" + String(i);    //what makes id's unique is the index of where it is in answerList
+        input.value = String(j);
+        var tmpid = String(this.divid) + "_opt_" + String(j);    //what makes id's unique is the index of where it is in answerList
         input.id = tmpid;
         $(label).attr('for', String(tmpid));
-        $(label).text(this.answerList[i].content);
+        $(label).text(this.answerList[j].content);
 
 
         newForm.appendChild(input);
@@ -442,6 +471,30 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
 }
 
+MultipleChoice.prototype.randomizeAnswers = function() {
+    var currentIndex = this.indexArray.length, temporaryValue, randomIndex ;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+      // Pick a remaining element...
+      var randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      var temporaryValue = this.indexArray[currentIndex];
+      this.indexArray[currentIndex] = this.indexArray[randomIndex];
+      this.indexArray[randomIndex] = temporaryValue;
+
+      var temporaryFeedback = this.feedbackList[currentIndex];
+      this.feedbackList[currentIndex] = this.feedbackList[randomIndex];
+      this.feedbackList[randomIndex] = temporaryFeedback;
+    }
+
+}
+
+
+
 MultipleChoice.prototype.restoreLocalAnswers = function() {     //Handles local storage
     if (this.multipleanswers) {
         this.checkMultipleSelect();
@@ -472,7 +525,7 @@ MultipleChoice.prototype.checkMultipleSelect = function () {
 MultipleChoice.prototype.checkRadio = function () {
     // This function repopulates a MCMF question with a user's previous answer,
     // which was previously stored into local storage
-    var _this = this
+    _this = this
     var len = localStorage.length;
 
     //retrieving data from local storage
@@ -506,7 +559,8 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
         if (buttonObjs[i].checked) { // if checked box
             given = buttonObjs[i].value; // get value of this button
             givenArray.push(given)    // add it to the givenArray
-            feedback += given + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
+            var intGiven = parseInt(given) + 1;
+            feedback += intGiven + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
             givenlog += given + ",";
         }
     }
