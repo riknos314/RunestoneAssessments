@@ -39,6 +39,7 @@ Parsons.prototype.init = function(opts) {
 
     this.populateContentArray();
     this.getQuestion();
+    this.createParsonsView();
 
 
 }
@@ -83,7 +84,7 @@ Parsons.prototype.createParsonsView = function() {     //Create DOM elements
 
 	var otherDiv = document.createElement('div');
 	otherDiv.id = "parsons-orig-" + Parsons.counter;
-	otherDiv.style = "display:none";
+	//otherDiv.style = "display:none";
 	otherDiv.innerHTML = this.origElem.innerHTML;  //Probably not right--just testing
 	containingDiv.appendChild(otherDiv);
 
@@ -110,24 +111,23 @@ Parsons.prototype.createParsonsView = function() {     //Create DOM elements
 	containingDiv.appendChild(parsonsControlDiv);
 
 	var check_butt = document.createElement('button');
-	$(check_butt).attr({
-		"class": "btn btn-success",
-		"value": "Check Me"
-	});
+	$(check_butt).attr("class", "btn btn-success");
+	check_butt.textContent = "Check Me";
 	check_butt.id = "checkMe" + Parsons.counter;
 	parsonsControlDiv.appendChild(check_butt);
 
 	var reset_butt = document.createElement('button');
-	$(comp_butt).attr({
-		"class": "btn btn-default",
-		"value": "Reset"
-	});
+	$(reset_butt).attr("class", "btn btn-default");
+	reset_butt.textContent = "Reset";
 	reset_butt.id = "reset" + Parsons.counter;
 	parsonsControlDiv.appendChild(reset_butt);
 
 	var messageDiv = document.createElement('div');
 	messageDiv.id = "parsons-message-" + Parsons.counter;
 	parsonsControlDiv.appendChild(messageDiv);
+
+	$(this.origElem).replaceWith(containingDiv);
+
 
 
 
