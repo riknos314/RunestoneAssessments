@@ -448,7 +448,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         var found = false;
         var i=0;
         while (!found) {
-            if (this.correctList[0] == this.answerList[i].id){
+            if (_this.correctList[0] == _this.answerList[i].id){
                 found = true;
             }
             i++;
@@ -471,7 +471,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     });
     compButt.textContent = "Compare Me";
     compButt.onclick = function() {
-        compareAnswers(this.divid);
+        this.compareAnswers(this.divid);
     }
 
     newForm.appendChild(butt);
@@ -485,6 +485,66 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     $(this.origElem).replaceWith(formDiv);
 
 }
+
+MultipleChoice.prototype.compareAnswers = function() {
+    data = {};
+    data.div_id = div_id;
+    data.course = eBookConfig.course;
+    jQuery.get(eBookConfig.ajaxURL + 'getaggregateresults', data, compareModal);
+}
+
+function compareModal(data, status, whatever) {
+    var datadict = eval(data)[0];
+    var answers = datadict.answerDict;
+    var misc = datadict.misc;
+    var kl = Object.keys(answers).sort();
+
+    var body = '<table>';
+    body += '<tr><th>Answer</th><th>Percent</th></tr>';
+
+    var theClass= '';
+    for (var k in kl) {
+        if (kl[k] == misc.correct) {
+            theClass = 'success';
+        } else {
+            theClass = 'info';
+        }
+
+        body += '<tr><td>' + kl[k] + '</td><td class="compare-me-progress">';
+        pct = answers[kl[k]] + '%';
+        body += '<div class="progress">';
+        body += '  <div class="progress-bar progress-bar-' + theClass + '" style="width:'+pct+';">' + pct;
+        body += '  </div>';
+        body += '</div></td></tr>';
+    }
+    body += '</table>';
+
+    if (misc['yourpct'] !== 'unavailable') {
+        body += '<br /><p>You have ' + misc['yourpct'] + '% correct for all questions</p>';
+    }
+
+    if (datadict.reslist !== undefined) {
+        body += instructorMchoiceModal(datadict.reslist);
+    }
+
+    var html = '<div class="modal fade">' +
+        '  <div class="modal-dialog compare-modal">' +
+        '    <div class="modal-content">' +
+        '      <div class="modal-header">' +
+        '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '        <h4 class="modal-title">Distribution of Answers</h4>' +
+        '      </div>' +
+        '      <div class="modal-body">' +
+        body +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+
+    el = $(html);
+    el.modal();
+}
+
 
 MultipleChoice.prototype.randomizeAnswers = function() {
     var currentIndex = this.indexArray.length, temporaryValue, randomIndex ;
@@ -637,6 +697,8 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
     var given;
     var feedback = null;
     var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+    console.log(buttonObjs);
+    console.log(buttonObjs.length);
     for (var i = buttonObjs.length - 1; i >= 0; i--) {
         if (buttonObjs[i].checked) {
             given = buttonObjs[i].value;

@@ -42,9 +42,9 @@ def visit_mc_node(self,node):
 
     self.body.append(res)
 
-
+print("The Terminalator Episode III")
 def depart_mc_node(self,node):
-    res = node.template_form_start % node.mc_options
+    res = ""
     feedbackStr = "["
     currFeedback = ""
     # Add all of the possible answers
@@ -55,9 +55,11 @@ def depart_mc_node(self,node):
             x,label = k.split('_')
             node.mc_options['alabel'] = label
             node.mc_options['atext'] = node.mc_options[k]
-            res += node.template_option % node.mc_options
             currFeedback = "feedback_" + label
+            node.mc_options['feedtext'] = escapejs(node.mc_options[currFeedback])
+            res += node.template_option % node.mc_options
             feedbackStr = feedbackStr + "'" + escapejs(node.mc_options[currFeedback]) + "', "
+
 
     # store the feedback array with key feedback minus last comma
     node.mc_options['feedback'] = feedbackStr[0:-2] + "]"
@@ -65,6 +67,7 @@ def depart_mc_node(self,node):
     res += node.template_end % node.mc_options
 
     self.body.append(res)
+
 
 
 
@@ -117,12 +120,19 @@ class MChoiceMF(Assessment):
             <ul data-component="multiplechoice" data-multipleanswers="false" id="%(divid)s">
             '''
 
+            #<li data-component="answer" data-correct id="42" >Here is my answer yo</li>
+            #<li data-component="feedback" for="42">Feedback for answer</li>
+
+            #<li data-component="answer" id="44">Here is my 2nd answer</li>
+            #<li data-component="feedback" for="44">Here is 2nd feedback</li>
+
         OPTION = '''
-            <li data-component="answer" id="%(divid)s_opt_%(alabel)s" ></li>
-            <li data-component="feedback" for="%(divid)s_opt_%(alabel)s"></li>
+            <li data-component="answer" data-correct id="%(divid)s_opt_%(alabel)s">%(atext)s</li><li data-component="feedback" id="%(divid)s_opt_%(alabel)s">%(feedtext)s</li>
             '''
+            
 
         TEMPLATE_END = '''
+ 
             </ul>
             '''
 
@@ -133,7 +143,6 @@ class MChoiceMF(Assessment):
 
         mcNode = MChoiceNode(self.options)
         mcNode.template_start = TEMPLATE_START
-        mcNode.template_form_start = '''<form name="%(divid)s_form" method="get" action="" onsubmit="return false;">'''
         mcNode.template_option = OPTION
         mcNode.template_end = TEMPLATE_END
 

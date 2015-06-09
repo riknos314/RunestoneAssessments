@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
 	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://interactivepython.org/runestone/static/thinkcspy/_static/bookfuncs.js"></script>
-	<script type="text/javascript" src="../multiplechoice.js"></script>
+	<script type="text/javascript" src="../js/assess.js"></script>
 	<script type="text/javascript">
 		eBookConfig = {};
 		eBookConfig.host = 'http://interactivepython.org' ? 'http://interactivepython.org' : 'http://127.0.0.1:8000';
@@ -24,7 +24,7 @@
 
 </head>
 <body>
-	<ul data-component="multiplechoice" data-multipleanswers="true" data-random id="question-1">
+	<ul data-component="multiplechoice" data-multipleanswers="false" id="question-1">
 	The Question can go right here.
 		<li data-component="answer" id="123" >Answer One</li>
 		<li data-component="feedback" for="123">Feedback for One</li>
@@ -43,25 +43,7 @@
 
 
 	</ul>
-	<ul data-component="multiplechoice" data-multipleanswers="true" data-random id="question-2">
-	The Question can go right here.
-		<li data-component="answer" id="abc" >Answer One</li>
-		<li data-component="feedback" for="abc">Feedback for One</li>
 
-		<li data-component="answer" id="def">Answer Two</li>
-		<li data-component="feedback" for="def">Feedback for Two</li>
-
-		<li data-component="answer" id="ghi" data-correct>Answer Three</li>
-		<li data-component="feedback" for="ghi">Feedback for Three</li>
-
-		<li data-component="answer" id="jkl" data-correct>Answer Four</li>
-		<li data-component="feedback" for="jkl">Feedback for Four</li>
-
-		<li data-component="answer" id="mno" data-correct>Answer Five</li>
-		<li data-component="feedback" for="mno">Feedback for Five</li>
-
-
-	</ul>
 </body>
 
 </html>
