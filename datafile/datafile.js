@@ -28,15 +28,15 @@ function DataFile(opts) {
 }
 
 DataFile.prototype.init = function(opts) {
-	RunestoneBase.apply(this, arguments);
-	var orig = opts.orig;  //entire <pre> element
-	this.origElem = orig;
+    RunestoneBase.apply(this, arguments);
+    var orig = opts.orig;  //entire <pre> element
+    this.origElem = orig;
     this.divid = orig.id;
     this.dataEdit = false
     if ($(this.origElem).data('edit') === true) {
     	this.dataEdit = true
     }
-
+    this.contentText = this.origElem.innerHTML;
 
 
 
