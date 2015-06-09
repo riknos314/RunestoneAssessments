@@ -108,6 +108,7 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
     $(newInput).attr({
         'type' : 'text',
         'id' : this.divid + 'blank',
+        'class' : 'form-control'
         });
 
     feedbackDiv.id = this.divid + '_feedback';
@@ -135,12 +136,14 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
     compButt.onclick = function() {
         _this.compareFITBAnswers();
     }
-
+    inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(newInput);
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(butt);
     inputDiv.appendChild(compButt);
+    inputDiv.appendChild(document.createElement('br'));
+    inputDiv.appendChild(document.createElement('br'));
 
     inputDiv.appendChild(feedbackDiv);
 
@@ -373,6 +376,10 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         "action" : "",
         "onsubmit" : "return false;"
     });
+    formDiv.appendChild(document.createElement('br'));
+    formDiv.appendChild(document.createElement('br'));
+
+
     formDiv.appendChild(newForm);
     feedbackDiv.id = this.divid + "_feedback";
 
@@ -470,8 +477,8 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     newForm.appendChild(butt);
     newForm.appendChild(compButt);
 
-    var br = document.createElement("br");
-    formDiv.appendChild(br);
+    formDiv.appendChild(document.createElement('br'));
+
     formDiv.appendChild(feedbackDiv);
 
 
@@ -560,6 +567,7 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     var givenIndex = 0;
     var givenlog = '';
     var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
+    console.log(this.feedbackList);
 
     // loop through the checkboxes
     var _this = this
@@ -682,11 +690,9 @@ var feedBack = function (divid, correct, feedbackText) {    //Displays feedback 
     }
 };
 
-
-
-
-
 $(document).ready(function() {
+    //must put timed assessment before the others so that any fillintheblank or
+        //multiplechoice in the timed component are not rendered outside of the timed assessment
     $('[data-component=fillintheblank]').each(function(index){  //FITB
         FITBList[this.id] = new FITB({'orig':this});
     });
