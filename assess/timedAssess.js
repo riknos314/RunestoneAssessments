@@ -716,16 +716,54 @@ Timed.prototype.init = function(opts) {
     this.MCMAList = []; //list of IDs of MCMA problems
     this.FIBList = [];  //list of IDs of FIB problems
 
-    //this.renderTimedAssessFramework();
     this.renderMCMFquestions();
     this.renderMCMAquestions();
     this.renderFIBquestions();
+    this.renderTimedAssessFramework();
     //this.renderTimedAssessButtons();
 
 }
 
 Timed.prototype.renderTimedAssessFramework= function() {
-    
+    var timedDiv = document.createElement('div'); //div that will hold the questions for the timed assessment
+    var elementHtml = $(this.origElem).html(); //take all of the tags that will generate the questions
+    $(timedDiv).html(elementHtml); //place those tags in the div
+    $(timedDiv).attr({ //set the id, and style the div to be hidden
+        'id':'timed_Test',
+        'style':'display:none'
+    });
+
+    var assessDiv = document.createElement('div');
+    assessDiv.id = "startWrapper";
+    var controlDiv = document.createElement('div');
+    $(controlDiv).attr({
+        'id':'controls',
+        'style':'text-align: center'
+    });
+    var startBtn = document.createElement('btn');
+    var pauseBtn = document.createElement('btn');
+    $(startBtn).attr({
+        'class':'btn btn-inverse',
+        'id':'start'
+    });
+    startBtn.textContent = "Start";
+    startBtn.onclick = function(){
+        this.start();
+    };
+    $(pauseBtn).attr({
+        'class':'btn btn-inverse',
+        'id':'pause'
+    });
+    pauseBtn.textContent = "Pause";
+    pauseBtn.onclick = function() {
+        this.pause();
+    };
+    assessDiv.appendChild(startBtn);
+    assessDiv.appendChild(pauseBtn);
+
+
+    assessDiv.appendChild(timedDiv);
+    $(this.origElem).replaceWith(assessDiv);
 }
 
 Timed.prototype.renderMCMFquestions = function() {
