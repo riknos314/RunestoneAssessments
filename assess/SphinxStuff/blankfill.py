@@ -18,12 +18,14 @@ __author__ = 'bmiller'
 from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
-from assessbase import *
+from .assessbase import *
 import json
 import random
 
 
 
+
+print("Count Termina the 4th sends his greetings")
 class FITBNode(nodes.General, nodes.Element):
     def __init__(self,content):
         """
@@ -37,45 +39,38 @@ class FITBNode(nodes.General, nodes.Element):
 
 
 def visit_fitb_node(self,node):
-    res = node.template_start % node.fitb_options
-
-    self.body.append(res)
-
-
-def depart_fitb_node(self,node):
-    #fbl = []
-    #for k in sorted(node.fitb_options.keys()):
-    #   if 'feedback' in k:
-    #        pair = eval(node.fitb_options[k])
-    #        p1 = escapejs(pair[1])
-    #        newpair = (pair[0],p1)
-    #        fbl.append(newpair)
-
-
-#    for k in sorted(node.fitb_options.keys()):    #Isaiah's for loop
-#        index = 1
-#        if 'feedback' in k:
-#            node.fitb_options['aLabel'] = index
-#            index += 1
-#            pair = eval(node.fitb_options[k])
-#            p0 = pair[0]
-#            p1 = escapejs(pair[1])
-#            node.fitb_options['feedExp'] = p0
-#            node.fitb_options['feedText'] = p1
-#            res += node.template_option % node.fitb_options
-                                                        #Endfor Isaiah's for loop
-
+    res = ""
 
     if 'casei' in node.fitb_options:
         node.fitb_options['casei'] = 'true'
     else:
         node.fitb_options['casei'] = 'false'
-    node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
+    res = node.template_start % node.fitb_options
+
+    self.body.append(res)
+        
+
+def depart_fitb_node(self,node):
     print(node.fitb_options)
-
+    fbl = []
     res = ""
+    feedCounter = 0
 
-    res += node.template_end % node.fitb_options
+
+    for k in sorted(node.fitb_options.keys()):
+        if 'feedback' in k:
+            feedCounter += 1
+            node.fitb_options['feedLabel'] = "feedback" + feedCounter
+            pair = eval(node.fitb_options[k])
+            p1 = escapejs(pair[1])
+            #newpair = (pair[0],p1)
+            #fbl.append(newpair)
+            p0 = escapejs(pair[0])
+            node.fitb_options['feedExp'] = p0
+            node.fitb_options['feedText'] = p1
+            res += node.template_option % node.fitb_options
+
+    node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
 
     self.body.append(res)
 
@@ -89,13 +84,13 @@ class FillInTheBlank(Assessment):
         'feedback':directives.unchanged,
         'feedback1':directives.unchanged,
         'feedback2':directives.unchanged,
-        'feedback3':directives.unchanged,
-        'feedback4':directives.unchanged,
+        'feedback3':directives.unchanged,                   
+        'feedback4':directives.unchanged,  
         'blankid':directives.unchanged,
         'iscode':directives.flag,
         'casei':directives.flag  # case insensitive matching
     }
-
+    
     def run(self):
         """
             process the fillintheblank directive and generate html for output.
@@ -109,28 +104,30 @@ class FillInTheBlank(Assessment):
             Question text
             ...
             """
-
+        
         TEMPLATE_START = '''
-            <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s">
-                <span data-answer id="%(divid)s_answer">%(answer)s</span>
+        <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s">%(bodytext)s
+        <span data-answer id="%(divid)s_answer">%(correct)s</span>
             '''
 
-        OPTIONS = '''
-                <span data-feedback="regex" id="feedback%(aLabel)s">%(feedExp)s</span>
-                <span data-feedback="text" for="feedback%(aLabel)s">%(feedText)s</span>
+        TEMPLATE_OPTION = '''
+            <span data-feedback="regex" id="%(feedLabel)s">%(feedExp)s</span>
+            <span data-feedback="text" for="%(feedLabel)s">%(feedText)s</span>
             '''
 
         TEMPLATE_END = '''
-            </p>
-            '''
+        </p>
+            '''   
 
         super(FillInTheBlank,self).run()
 
         fitbNode = FITBNode(self.options)
         fitbNode.template_start = TEMPLATE_START
-        fitbNode.template_option = OPTIONS
+        fitbNode.template_option = TEMPLATE_OPTION
         fitbNode.template_end = TEMPLATE_END
 
         self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [fitbNode]
+
+
