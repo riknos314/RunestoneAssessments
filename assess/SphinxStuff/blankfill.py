@@ -25,7 +25,7 @@ import random
 
 
 
-print("Count Termina the 4th sends his greetings")
+print("Count Terminal the 4th sends his greetings")
 class FITBNode(nodes.General, nodes.Element):
     def __init__(self,content):
         """
