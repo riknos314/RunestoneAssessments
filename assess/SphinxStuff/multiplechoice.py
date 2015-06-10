@@ -42,7 +42,6 @@ def visit_mc_node(self,node):
 
     self.body.append(res)
 
-print("The Terminalator Episode III")
 def depart_mc_node(self,node):
     res = ""
     feedbackStr = "["
@@ -57,6 +56,11 @@ def depart_mc_node(self,node):
             node.mc_options['atext'] = node.mc_options[k]
             currFeedback = "feedback_" + label
             node.mc_options['feedtext'] = escapejs(node.mc_options[currFeedback])
+            #for mcmf
+            if label in node.mc_options['correct']:
+                node.mc_options["is_correct"] = "data-correct"
+            else:
+                node.mc_options["is_correct"] = ""
             res += node.template_option % node.mc_options
             feedbackStr = feedbackStr + "'" + escapejs(node.mc_options[currFeedback]) + "', "
 
@@ -106,7 +110,7 @@ class MChoiceMF(Assessment):
             :answer_b: possible answer
             ...
             :answer_e: possible answer
-            :correct: leter of correct answer
+            :correct: letter of correct answer
             :feedback_a: displayed if a is picked
             :feedback_b: displayed if b is picked
             :feedback_c: displayed if c is picked
@@ -120,14 +124,8 @@ class MChoiceMF(Assessment):
             <ul data-component="multiplechoice" data-multipleanswers="false" id="%(divid)s">
             '''
 
-            #<li data-component="answer" data-correct id="42" >Here is my answer yo</li>
-            #<li data-component="feedback" for="42">Feedback for answer</li>
-
-            #<li data-component="answer" id="44">Here is my 2nd answer</li>
-            #<li data-component="feedback" for="44">Here is 2nd feedback</li>
-
         OPTION = '''
-            <li data-component="answer" data-correct id="%(divid)s_opt_%(alabel)s">%(atext)s</li><li data-component="feedback" id="%(divid)s_opt_%(alabel)s">%(feedtext)s</li>
+            <li data-component="answer" %(is_correct)s id="%(divid)s_opt_%(alabel)s">%(atext)s</li><li data-component="feedback" id="%(divid)s_opt_%(alabel)s">%(feedtext)s</li>
             '''
             
 
@@ -196,24 +194,17 @@ class MChoiceMA(Assessment):
             ...
             """
         TEMPLATE_START = '''
-            <div id="%(divid)s" class="alert alert-warning">
+            <ul data-component="multiplechoice" data-multipleanswers="true" id="%(divid)s">
             '''
 
         OPTION = '''
-            <input type="checkbox" name="group1" value="%(alabel)s" id="%(divid)s_opt_%(alabel)s" />
-            <label for= "%(divid)s_opt_%(alabel)s">  %(alabel)s) %(atext)s</label><br />
+            <li data-component="answer" %(is_correct)s id="%(divid)s_opt_%(alabel)s">%(atext)s</li><li data-component="feedback" id="%(divid)s_opt_%(alabel)s">%(feedtext)s</li>
             '''
+            
 
         TEMPLATE_END = '''
-            <script>
-            $(document).ready(function(){checkMultipleSelect('%(divid)s');});
-            </script>
-            <button class='btn btn-success' name="do answer" onclick="checkMCMAStorage('%(divid)s','%(correct)s',%(feedback)s)">Check Me</button>
-            <button class='btn btn-default' id="%(divid)s_bcomp" disabled name="compare" onclick="compareAnswers('%(divid)s');">Compare Me</button>
-            </form><br />
-            <div id="%(divid)s_feedback">
-            </div>
-            </div>
+ 
+            </ul>
             '''
 
 

@@ -170,14 +170,20 @@ FITB.prototype.checkPreviousFIB = function() {
 
 FITB.prototype.checkFIBStorage = function() {                //Starts chain of functions which ends with feedBack() displaying feedback to user
     var given = document.getElementById(this.divid + "blank").value;
+    console.log(given);
     // update number of trials??
     // log this to the db
     modifiers = '';
     if (this.casei) {
         modifiers = 'i'
     }
-    var patt = RegExp(this.correctAnswer, modifiers);
+
+
+    console.log(this.correctAnswer);
+    var patt = RegExp(String(this.correctAnswer), modifiers);
+    console.log(patt);
     var isCorrect = patt.test(given);
+    console.log(isCorrect);
     if (!isCorrect) {
         fbl = this.feedbackArray;
         for (var i = 0; i < fbl.length; i++) {
@@ -244,17 +250,6 @@ FITB.prototype.compareFITB = function(data, status, whatever) {
 
 //Multiple Choice part
 
-function RunestoneBase() {
-
-}
-
-RunestoneBase.prototype.logBookEvent = function(info) {
-    console.log("logging event " + this.divid);
-};
-
-RunestoneBase.prototype.logRunEvent = function(info) {
-    console.log("running " + this.divid);
-};
 
 var mcList = {};  //Multiple Choice dictionary
 
@@ -425,7 +420,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     var _this = this;
     if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
         var expectedArray = [];
-
         for (var i=0; i<_this.answerList.length; i++) {
             var tempAnswerId = _this.answerList[i].id;
             var notFound = true
@@ -471,7 +465,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
     });
     compButt.textContent = "Compare Me";
     compButt.onclick = function() {
-        this.compareAnswers(this.divid);
+        _this.compareAnswers(_this.divid);
     }
 
     newForm.appendChild(butt);
@@ -488,7 +482,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
 
 MultipleChoice.prototype.compareAnswers = function() {
     data = {};
-    data.div_id = div_id;
+    data.div_id = this.div_id;
     data.course = eBookConfig.course;
     jQuery.get(eBookConfig.ajaxURL + 'getaggregateresults', data, compareModal);
 }
@@ -627,7 +621,6 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     var givenIndex = 0;
     var givenlog = '';
     var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
-    console.log(this.feedbackList);
 
     // loop through the checkboxes
     var _this = this
@@ -642,7 +635,6 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     }
     // sort the given array
     givenArray.sort();
-
     while (correctIndex < correctArray.length &&
         givenIndex < givenArray.length) {
         if (givenArray[givenIndex] < correctArray[correctIndex]) {
@@ -697,8 +689,6 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
     var given;
     var feedback = null;
     var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
-    console.log(buttonObjs);
-    console.log(buttonObjs.length);
     for (var i = buttonObjs.length - 1; i >= 0; i--) {
         if (buttonObjs[i].checked) {
             given = buttonObjs[i].value;
