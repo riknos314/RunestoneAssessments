@@ -120,7 +120,6 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
     inputDiv.appendChild(newInput);
     inputDiv.appendChild(document.createElement('br'));
     if (!this.timed) { //don't make buttons if part of a timed assessment
-        console.log("this is running");
         var butt = document.createElement('button');         //Check me button
         butt.textContent = "Check Me";
         $(butt).attr({
@@ -560,7 +559,9 @@ MultipleChoice.prototype.checkRadio = function () {
         var arr = ex.split(";");
         var str = "#"+_this.divid + "_opt_" + arr[0];
         $(str).attr("checked", "true");
-        document.getElementById(_this.divid + '_bcomp').disabled = false;
+        if (!_this.timed) {
+            document.getElementById(_this.divid + '_bcomp').disabled = false;
+        }
       } // end if not null
     } // end if (len > 0)
 };
@@ -625,7 +626,9 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     } else {
         this.feedBackTimedMC();
     }
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    if (!this.timed) {
+        document.getElementById(this.divid + '_bcomp').disabled = false;
+    }
 };
 
 MultipleChoice.prototype.feedBackMCMA = function (numCorrect, numNeeded, numGiven, feedbackText) {
@@ -674,7 +677,9 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
     } else {
         this.feedBackTimedMC();
     }
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    if (!this.timed) {
+        document.getElementById(this.divid + '_bcomp').disabled = false;
+    }
 };
 
 MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
@@ -704,10 +709,10 @@ MultipleChoice.prototype.checkCorrectTimedMCMF = function() {
 };
 
 MultipleChoice.prototype.feedBackTimedMC = function() {
-    var _this =this;
+    var _this = this;
     for (var i = 0; i < this.answerList.length; i++) {
         var feedbackobj = $('#'+_this.divid+"_eachFeedback_"+1);
-        $(feedbackobj).text(_this.feedbackArray[i]);
+        $(feedbackobj).text(_this.feedbackList[i]);
         var tmpid = _this.answerList[1].id;
         if (_this.correctList.indexOf(tmpid)) {
             $(feedbackobj).attr({'style':'alert alert-success'});
@@ -761,7 +766,7 @@ Timed.prototype.init = function(opts) {
 
     this.MCMFList = []; //list of MCMF problems
     this.MCMAList = []; //list of MCMA problems
-    this.FIBList = [];  //list of FIB problems
+    this.FITBList = [];  //list of FIB problems
 
     this.renderMCMFquestions();
     this.renderMCMAquestions();
@@ -926,9 +931,9 @@ Timed.prototype.increment = function(){
 	if(this.running == 1 & !this.taken) {
         var _this = this;
 		setTimeout(function() {
-		_this.time--;
-		_this.showTime(_this.time);
-		    if(_this.time>0){
+		_this.timeLimit--;
+		_this.showTime(_this.timeLimit);
+		    if(_this.timeLimit>0){
 			    _this.increment();
 			// ran out of time
 		    }else{
@@ -1010,7 +1015,7 @@ Timed.prototype.checkTimedStorage = function() {
     for (var i=0; i<this.MCMFList.length; i++) {
         _this.MCMFList[i].checkMCMFStorage();
     }
-    for (var i=0; i<this.FITBList.length; i++) {
+    for (var i=0; i<_this.FITBList.length; i++) {
         _this.FITBList[i].checkFITBStorage();
     }
 }
