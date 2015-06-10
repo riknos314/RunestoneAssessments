@@ -25,17 +25,14 @@ from .blankfill import *
 
 
 def setup(app):
-    app.add_directive('mchoicemf', MChoiceMF)
-    app.add_directive('mchoicema', MChoiceMA)
+    app.add_directive('mchoice', MChoice)
     app.add_directive('timedmchoicemf', timedMChoiceMF)
     app.add_directive('starttimer', StartTimer)
     app.add_directive('finishtimer', FinishTimer)
     app.add_directive('fillintheblank', FillInTheBlank)
-    app.add_directive('mcmfrandom', MChoiceRandomMF)
     app.add_directive('addbutton', AddButton)
     app.add_directive('qnum', QuestionNumber)
     app.add_directive('revealquestions', RevealQuestions)
-    app.add_role('textfield', textfield_role)
 
     app.add_javascript('assess.js')
 
