@@ -53,8 +53,10 @@ FITB.prototype.init = function(opts) {
     if ($(this.origElem).data('casei') === true) {
         this.casei = true;
     }
-
-
+    this.timed = false;  //True if this is a child of a timed assessment component
+    if ($(this.origElem).is("[data-timed]")){
+        this.timed = true;
+    }
     this.findQuestion();
     this.populateFeedbackArray();
     this.createFITBElement();
@@ -112,44 +114,39 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
         });
 
     feedbackDiv.id = this.divid + '_feedback';
-    var butt = document.createElement('button');         //Check me button
-    butt.textContent = "Check Me";
-    $(butt).attr({
-            "class" : "btn btn-success",
-            "name" : "do answer",
-        });
-
-
-    butt.onclick = function() {
-        _this.checkFIBStorage();
-    }
-
-
-    var compButt = document.createElement("button");       //Compare me button
-    $(compButt).attr({
-        "class":"btn btn-default",
-        "id":this.origElem.id+"_bcomp",
-        "disabled":"",
-        "name":"compare",
-    });
-    compButt.textContent = "Compare Me";
-    compButt.onclick = function() {
-        _this.compareFITBAnswers();
-    }
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(newInput);
     inputDiv.appendChild(document.createElement('br'));
-    inputDiv.appendChild(butt);
-    inputDiv.appendChild(compButt);
+    if (!this.timed) { //don't make buttons if part of a timed assessment
+        console.log("this is running");
+        var butt = document.createElement('button');         //Check me button
+        butt.textContent = "Check Me";
+        $(butt).attr({
+                "class" : "btn btn-success",
+                "name" : "do answer",
+            });
+        butt.onclick = function() {
+            _this.checkFIBStorage();
+        }
+        var compButt = document.createElement("button");       //Compare me button
+        $(compButt).attr({
+            "class":"btn btn-default",
+            "id":this.origElem.id+"_bcomp",
+            "disabled":"",
+            "name":"compare",
+        });
+        compButt.textContent = "Compare Me";
+        compButt.onclick = function() {
+            _this.compareFITBAnswers();
+        }
+        inputDiv.appendChild(butt);
+        inputDiv.appendChild(compButt);
+    }
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(document.createElement('br'));
-
     inputDiv.appendChild(feedbackDiv);
-
     $(this.origElem).replaceWith(inputDiv);
-
-
 }
 
 FITB.prototype.checkPreviousFIB = function() {
@@ -160,10 +157,12 @@ FITB.prototype.checkPreviousFIB = function() {
     if (len > 0) {
         var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid);
         if (ex !== null) {
-           var arr = ex.split(";");
-           var str = this.divid + "blank";
-           $("#" + str).attr("value", arr[0]);
-           document.getElementById(this.divid + '_bcomp').disabled = false;
+            var arr = ex.split(";");
+            var str = this.divid + "blank";
+            $("#" + str).attr("value", arr[0]);
+            if (!this.timed) {
+                document.getElementById(this.divid + '_bcomp').disabled = false;
+            }
         } // end if ex not null
     } // end if len > 0
 };
@@ -244,17 +243,6 @@ FITB.prototype.compareFITB = function(data, status, whatever) {
 
 //BEGIN MULTIPLE CHOICE COMPONENT
 
-function RunestoneBase() {
-
-}
-
-RunestoneBase.prototype.logBookEvent = function(info) {
-    console.log("logging event " + this.divid);
-};
-
-RunestoneBase.prototype.logRunEvent = function(info) {
-    console.log("running " + this.divid);
-};
 
 var mcList = {};  //Multiple Choice dictionary
 
@@ -282,6 +270,10 @@ MultipleChoice.prototype.init = function(opts) {
     if ($(this.origElem).is("[data-random]")){
         this.random = true;
     }
+    this.timed = false;
+    if ($(this.origElem).is("[data-timed]")){
+        this.timed = true;
+    }
 
     this.answerList = [];
     this.correctList = [];
@@ -294,8 +286,6 @@ MultipleChoice.prototype.init = function(opts) {
     this.createCorrectList();
     this.createMCForm();
     this.restoreLocalAnswers();
-
-
 }
 
 MultipleChoice.prototype.findQuestion = function() {     //Takes full text
@@ -304,7 +294,6 @@ MultipleChoice.prototype.findQuestion = function() {     //Takes full text
     var fulltext = $(this.origElem).html();
     var temp = fulltext.split(delimiter);
     this.question = temp[0];
-
 }
 
 MultipleChoice.prototype.findAnswers = function() {
@@ -362,6 +351,7 @@ MultipleChoice.prototype.createCorrectList = function() {   //Creates array that
 
 
 MultipleChoice.prototype.createMCForm = function() {    //Creates form that holds the question/answers
+    var _this = this;
     var formDiv = document.createElement("div");
     $(formDiv).text(this.question);
     $(formDiv).addClass("alert alert-warning");
@@ -377,8 +367,20 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         "onsubmit" : "return false;"
     });
     formDiv.appendChild(document.createElement('br'));
-    formDiv.appendChild(document.createElement('br'));
 
+
+    if (this.timed){
+        var timeIconDiv = document.createElement("div");
+        var timeIcon = document.createElement("img");
+        $(timeIcon).attr({
+            'src':'../_static/clock.png',
+            'style':"width:15px;height:15px"
+        });
+        timeIconDiv.className = "timeTip";
+        timeIconDiv.title = "";
+        timeIconDiv.appendChild(timeIcon);
+        formDiv.appendChild(timeIconDiv);
+    }
 
     formDiv.appendChild(newForm);
     feedbackDiv.id = this.divid + "_feedback";
@@ -395,11 +397,12 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         this.randomizeAnswers();
     }
 
+
     for (var i=0; i < this.answerList.length; i++){       //Create form input elements
         var j = this.indexArray[i];
         var input = document.createElement("input");
         var label = document.createElement("label");
-        var br = document.createElement("br");
+        var feedbackEach = document.createElement("div"); //used for feedback in timed assessments
         input.type = input_type;
         input.name = "group1";
         input.value = String(j);
@@ -408,21 +411,48 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         $(label).attr('for', String(tmpid));
         $(label).text(this.answerList[j].content);
 
-
+        feedbackEach.id = this.divid + "_eachFeedback_" + j;
         newForm.appendChild(input);
         newForm.appendChild(label);
-        newForm.appendChild(br);
+        newForm.appendChild(document.createElement("br"));
+        newForm.appendChild(feedbackEach);
     }
 
-    var butt = document.createElement("button");
+    if (!this.timed) { // if the assessment is timed, we don't want a check button on each element
+        var butt = document.createElement("button");
 
-    butt.textContent = "Check Me";
-    $(butt).attr({
+        butt.textContent = "Check Me";
+        $(butt).attr({
             "class" : "btn btn-success",
             "name" : "do answer",
         });
+        if (this.multipleanswers) {
+            butt.onclick = function() {
+                _this.checkMCMAStorage();
+            }
+        } else {
+            butt.onclick = function() {
+                _this.checkMCMFStorage();
+            }
+        }
 
-    var _this = this;
+        var compButt = document.createElement("button");
+        $(compButt).attr({
+            "class":"btn btn-default",
+            "id":this.origElem.id+"_bcomp",
+            "disabled":"",
+            "name":"compare",
+        });
+        compButt.textContent = "Compare Me";
+        compButt.onclick = function() {
+            compareAnswers(this.divid);
+        };
+
+        newForm.appendChild(butt);
+        newForm.appendChild(compButt);
+    }
+
+
     if (this.multipleanswers) {          //Second parameter in onclick function varies depending on this
         var expectedArray = [];
 
@@ -440,10 +470,6 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         }
         this.expectedString = expectedArray.join();
 
-        butt.onclick = function() {
-            _this.checkMCMAStorage();
-        }
-
     } else {
         var found = false;
         var i=0;
@@ -454,36 +480,11 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
             i++;
         }
         this.correctAnswerIndex = i-1;
-
-        butt.onclick = function() {
-            _this.checkMCMFStorage();
-        };
-
-
-    }
-
-    var compButt = document.createElement("button");
-    $(compButt).attr({
-        "class":"btn btn-default",
-        "id":this.origElem.id+"_bcomp",
-        "disabled":"",
-        "name":"compare",
-    });
-    compButt.textContent = "Compare Me";
-    compButt.onclick = function() {
-        compareAnswers(this.divid);
-    }
-
-    newForm.appendChild(butt);
-    newForm.appendChild(compButt);
+    };
 
     formDiv.appendChild(document.createElement('br'));
-
     formDiv.appendChild(feedbackDiv);
-
-
     $(this.origElem).replaceWith(formDiv);
-
 }
 
 MultipleChoice.prototype.randomizeAnswers = function() {
@@ -531,7 +532,9 @@ MultipleChoice.prototype.checkMultipleSelect = function () {
             for (var a = 0; a < answers.length; a++) {
                 var str = "#"+_this.divid + "_opt_" + answers[a];
                 $(str).attr("checked", "true");
-                document.getElementById(_this.divid + '_bcomp').disabled = false;
+                if (!_this.timed) {
+                    document.getElementById(_this.divid + '_bcomp').disabled = false;
+                }
             } // end for
         } // end if
     } // end if len > 0
@@ -567,7 +570,6 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     var givenIndex = 0;
     var givenlog = '';
     var buttonObjs = document.forms[this.divid + "_form"].elements.group1;
-    console.log(this.feedbackList);
 
     // loop through the checkboxes
     var _this = this
@@ -709,14 +711,101 @@ Timed.prototype.init = function(opts) {
     this.origElem = orig; //the entire element of this timed assessment and all it's children
     this.divid = orig.id;
     this.children = this.origElem.childNodes;
-    
 
+    this.MCMFList = []; //list of IDs of MCMF problems
+    this.MCMAList = []; //list of IDs of MCMA problems
+    this.FIBList = [];  //list of IDs of FIB problems
 
-
-    this.renderTimedAssessFramework();
     this.renderMCMFquestions();
     this.renderMCMAquestions();
     this.renderFIBquestions();
+    this.renderTimedAssessFramework();
+    //this.renderTimedAssessButtons();
+
+}
+
+Timed.prototype.renderTimedAssessFramework= function() {
+    var timedDiv = document.createElement('div'); //div that will hold the questions for the timed assessment
+    var elementHtml = $(this.origElem).html(); //take all of the tags that will generate the questions
+    $(timedDiv).html(elementHtml); //place those tags in the div
+    $(timedDiv).attr({ //set the id, and style the div to be hidden
+        'id':'timed_Test',
+        'style':'display:none'
+    });
+
+    var assessDiv = document.createElement('div');
+    assessDiv.id = "startWrapper";
+    var controlDiv = document.createElement('div');
+    $(controlDiv).attr({
+        'id':'controls',
+        'style':'text-align: center'
+    });
+    var startBtn = document.createElement('btn');
+    var pauseBtn = document.createElement('btn');
+    $(startBtn).attr({
+        'class':'btn btn-inverse',
+        'id':'start'
+    });
+    startBtn.textContent = "Start";
+    startBtn.onclick = function(){
+        this.start();
+    };
+    $(pauseBtn).attr({
+        'class':'btn btn-inverse',
+        'id':'pause'
+    });
+    pauseBtn.textContent = "Pause";
+    pauseBtn.onclick = function() {
+        this.pause();
+    };
+    assessDiv.appendChild(startBtn);
+    assessDiv.appendChild(pauseBtn);
+
+
+    assessDiv.appendChild(timedDiv);
+    $(this.origElem).replaceWith(assessDiv);
+}
+
+Timed.prototype.renderMCMFquestions = function() {
+    //this finds all the MCMF questions and call their constructor method
+    //Also adds them to MCMFList
+    var _this = this;
+    for (var i=0; i< this.children.length; i++){
+        var tmpChild = this.children[i];
+        if ($(tmpChild).is("[data-component=multiplechoice]")) {
+            if ($(tmpChild).data('multipleanswers') !== true) {
+                _this.MCMFList.push(new MultipleChoice({'orig':tmpChild}));
+            }
+        }
+    }
+}
+
+Timed.prototype.renderMCMAquestions = function() {
+    //this finds all the MCMA questions and calls their constructor method
+    //Also adds them to MCMAList
+    var _this = this
+    for (var i=0; i< this.children.length; i++){
+        var tmpChild = this.children[i];
+        if ($(tmpChild).is("[data-component=multiplechoice]")) {
+            if ($(tmpChild).data('multipleanswers') === true) {
+                var newMCMA = new MultipleChoice({'orig':tmpChild});
+                _this.MCMAList.push(newMCMA);
+            }
+        }
+    }
+}
+
+Timed.prototype.renderFIBquestions = function() {
+    //this finds all the FIB questions and calls their constructor method
+    //Also adds them to FIBList
+    var _this = this
+    for (var i=0; i< this.children.length; i++){
+        var tmpChild = this.children[i];
+        if ($(tmpChild).is("[data-component=multiplechoice]")) {
+            var newFITB = new FITB({'orig':tmpChild});
+            _this.FITBList.push(newFITB);
+        }
+    }
 }
 
 
@@ -724,8 +813,9 @@ Timed.prototype.init = function(opts) {
 //Function that calls the methods to construct the components on page load
 
 $(document).ready(function() {
-    //must put timed assessment before the others so that any fillintheblank or
-        //multiplechoice in the timed component are not rendered outside of the timed assessment
+    $('[data-component=timedAssessment]').each(function(index){
+        TimedList[this.id] = new Timed({'orig':this});
+    });
     $('[data-component=fillintheblank]').each(function(index){  //FITB
         FITBList[this.id] = new FITB({'orig':this});
     });
