@@ -46,6 +46,10 @@ def visit_mc_node(self,node):
         node.mc_options['multipleAnswers'] = 'true'
     else:
         node.mc_options['multipleAnswers'] = 'false'
+    if 'timed' in node.mc_options:
+        node.mc_options['timed'] = 'data-timed'
+    else:
+        node.mc_options['timed'] = ''
     res = node.template_start % node.mc_options
 
     self.body.append(res)
@@ -100,7 +104,8 @@ class MChoice(Assessment):
         'feedback_e':directives.unchanged,
         'iscode':directives.flag,
         'random':directives.flag,
-        'multiple_answers': directives.flag
+        'multiple_answers':directives.flag,
+        'timed':directives.flag
     }
 
     def run(self):
@@ -127,7 +132,7 @@ class MChoice(Assessment):
             ...
             """
         TEMPLATE_START = '''
-            <ul data-component="multiplechoice" data-multipleanswers="%(multipleAnswers)s" %(random)s id="%(divid)s">
+            <ul data-component="multiplechoice" data-multipleanswers="%(multipleAnswers)s" %(random)s %(timed)s id="%(divid)s">
             '''
 
         OPTION = '''
@@ -153,86 +158,3 @@ class MChoice(Assessment):
         self.state.nested_parse(self.content, self.content_offset, mcNode)
 
         return [mcNode]
-
-
-
-######################################################################################################
-#####Timed MChoiceMF
-
-class timedMChoiceMF(Assessment):
-    required_arguments = 1
-    optional_arguments = 1
-    final_argument_whitespace = True
-    has_content = True
-    option_spec = {'answer_a':directives.unchanged,
-        'answer_b':directives.unchanged,
-        'answer_c':directives.unchanged,
-        'answer_d':directives.unchanged,
-        'answer_e':directives.unchanged,
-        'correct':directives.unchanged,
-        'feedback_a':directives.unchanged,
-        'feedback_b':directives.unchanged,
-        'feedback_c':directives.unchanged,
-        'feedback_d':directives.unchanged,
-        'feedback_e':directives.unchanged,
-        'iscode':directives.flag
-    }
-
-    def run(self):
-        """
-            process the multiplechoice directive and generate html for output.
-            :param self:
-            :return:
-            .. mcmfstorage:: qname
-            :iscode: boolean
-            :answer_a: possible answer  -- what follows _ is label
-            :answer_b: possible answer
-            ...
-            :answer_e: possible answer
-            :correct: leter of correct answer
-            :feedback_a: displayed if a is picked
-            :feedback_b: displayed if b is picked
-            :feedback_c: displayed if c is picked
-            :feedback_d: displayed if d is picked
-            :feedback_e: displayed if e is picked
-
-            Question text
-            ...
-            """
-        TEMPLATE_START = '''
-            <div id="%(divid)s" class="alert alert-warning">
-            '''
-
-        OPTION = '''
-            <input type="radio" name="group1" value="%(alabel)s" id="%(divid)s_opt_%(alabel)s" />
-            <label for= "%(divid)s_opt_%(alabel)s">  %(alabel)s) %(atext)s</label><br />
-            <div id= "%(divid)s_eachFeedback_%(alabel)s"></div>
-            '''
-
-        TEMPLATE_END = '''
-
-            <script>
-            populateArrays('%(divid)s','%(correct)s',"Poop";
-            $(document).ready(function(){checkTimedRadio('%(divid)s');});
-            </script>
-
-
-            </form><br />
-            <div id="%(divid)s_feedback">
-            </div>
-            </div>
-            '''
-        super(timedMChoiceMF,self).run();
-
-        mcNode = MChoiceNode(self.options)
-        mcNode.template_start = TEMPLATE_START
-        mcNode.template_form_start = '''<div class="timeTip" title=" "><img src="../_static/clock.png" style="width:15px;height:15px"></div><form name="%(divid)s_form" method="get" action="" onsubmit="return false;">'''
-        mcNode.template_option = OPTION
-        mcNode.template_end = TEMPLATE_END
-
-        self.state.nested_parse(self.content, self.content_offset, mcNode)
-
-        return [mcNode]
-
-
-######################################################################
