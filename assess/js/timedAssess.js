@@ -89,6 +89,19 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
     var newInput = document.createElement('input');
     var feedbackDiv = document.createElement('div');
 
+    if (this.timed){
+        var timeIconDiv = document.createElement("div");
+        var timeIcon = document.createElement("img");
+        $(timeIcon).attr({
+            'src':'../_static/clock.png',
+            'style':"width:15px;height:15px"
+        });
+        timeIconDiv.className = "timeTip";
+        timeIconDiv.title = "";
+        timeIconDiv.appendChild(timeIcon);
+        inputDiv.appendChild(timeIconDiv);
+    }
+
     $(newInput).attr({
         'type' : 'text',
         'id' : this.divid + 'blank',
@@ -96,7 +109,6 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
         });
 
     feedbackDiv.id = this.divid + '_feedback';
-    inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(newInput);
     inputDiv.appendChild(document.createElement('br'));
@@ -125,7 +137,6 @@ FITB.prototype.createFITBElement = function() {      //Creates input element tha
         inputDiv.appendChild(compButt);
     }
     inputDiv.appendChild(document.createElement('br'));
-    inputDiv.appendChild(document.createElement('br'));
     inputDiv.appendChild(feedbackDiv);
     $(this.origElem).replaceWith(inputDiv);
 }
@@ -152,7 +163,6 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     var given = document.getElementById(this.divid + "blank").value;
     // update number of trials??
     // log this to the db
-    console.log("butts");
     modifiers = '';
     if (this.casei) {
         modifiers = 'i'
@@ -179,7 +189,9 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     feedBack('#' + this.divid + '_feedback', isCorrect, this.feedbackArray);
     var answerInfo = 'answer:' + given + ":" + (isCorrect ? 'correct' : 'no');
     logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    if (!this.timed) {
+        document.getElementById(this.divid + '_bcomp').disabled = false;
+    };
 };
 
 
@@ -550,11 +562,11 @@ MultipleChoice.prototype.checkRadio = function () {
 
 MultipleChoice.prototype.checkMCMAStorage = function () {
     var given;
-    var feedback = "";
-    var correctArray = this.expectedString.split(",");
-    correctArray.sort();
-    var givenArray = [];
-    var correctCount = 0;
+    this.feedbackString = "";
+    this.correctArray = this.expectedString.split(",");
+    this.correctArray.sort();
+    this.givenArray = [];
+    this.correctCount = 0;
     var correctIndex = 0;
     var givenIndex = 0;
     var givenlog = '';
@@ -565,22 +577,22 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     for (var i = 0; i < buttonObjs.length; i++) {
         if (buttonObjs[i].checked) { // if checked box
             given = buttonObjs[i].value; // get value of this button
-            givenArray.push(given)    // add it to the givenArray
+            _this.givenArray.push(given)    // add it to the _this.givenArray
             var intGiven = parseInt(given) + 1;
-            feedback += intGiven + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
+            _this.feedbackString += intGiven + ": " + _this.feedbackList[i] + "<br />"; // add the feedback
             givenlog += given + ",";
         }
     }
     // sort the given array
-    givenArray.sort();
+    _this.givenArray.sort();
 
-    while (correctIndex < correctArray.length &&
-        givenIndex < givenArray.length) {
-        if (givenArray[givenIndex] < correctArray[correctIndex]) {
+    while (correctIndex < _this.correctArray.length &&
+        givenIndex < _this.givenArray.length) {
+        if (_this.givenArray[givenIndex] < _this.correctArray[correctIndex]) {
             givenIndex++;
         }
-        else if (givenArray[givenIndex] == correctArray[correctIndex]) {
-            correctCount++;
+        else if (_this.givenArray[givenIndex] == _this.correctArray[correctIndex]) {
+            _this.correctCount++;
             givenIndex++;
             correctIndex++;
         }
@@ -592,19 +604,18 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
 
     // save the data into local storage
     var storage_arr = new Array();
-    storage_arr.push(givenArray);
+    storage_arr.push(_this.givenArray);
     storage_arr.push(this.expectedArray);
     localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
 
     // log the answer
     var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
-        (correctCount == correctArray.length ? 'correct' : 'no');
+        (_this.correctCount == _this.correctArray.length ? 'correct' : 'no');
     logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': _this.divid});
 
     // give the user feedback
     if (!this.timed) {  //timed questions give feedback for each answer, not each question
-        this.feedBackMCMA(correctCount,
-            correctArray.length, givenArray.length, feedback);
+        this.feedBackMCMA();
     } else {
         this.feedBackTimedMC();
     }
@@ -613,10 +624,14 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     }
 };
 
-MultipleChoice.prototype.feedBackMCMA = function (numCorrect, numNeeded, numGiven, feedbackText) {
+MultipleChoice.prototype.feedBackMCMA = function () {
     tmpdivid = "#"+this.divid + "_feedback";
     var answerStr = "answers";
     if (numGiven == 1) answerStr = "answer";
+    var numCorrect = _this.correctCount;
+    var numNeeded = _this.correctArray.length;
+    var numGiven = _this.givenArray.length;
+    var feedbackText = _this.feedbackString;
 
     if (numCorrect == numNeeded && numNeeded == numGiven) {
         $(tmpdivid).html('Correct!  <br />' + feedbackText);
@@ -678,9 +693,11 @@ MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
     }
 };
 
-MultipleChoice.prototype.checkCorrectTimedMCMA = function(numCorrect, numNeeded, numGiven, feedbackText) {
+MultipleChoice.prototype.checkCorrectTimedMCMA = function() {
     var _this = this;
-    if (numCorrect == numNeeded && numNeeded == numGiven) {
+
+    _this.correct = false;
+    if (_this.correctCount == _this.correctArray.length && _this.correctArray.length == _this.givenArray.length) {
         _this.correct = true;
     }
     return _this.correct;
@@ -750,11 +767,10 @@ Timed.prototype.init = function(opts) {
     this.MCMAList = []; //list of MCMA problems
     this.FITBArray = [];  //list of FIB problems
 
+    this.renderTimedAssessFramework();
     this.renderMCMFquestions();
     this.renderMCMAquestions();
     this.renderFIBquestions();
-    this.renderTimedAssessFramework();
-    //this.renderTimedAssessButtons();
 
 }
 
@@ -798,14 +814,37 @@ Timed.prototype.renderTimedAssessFramework= function() {
     pauseBtn.onclick = function() {
         _this.pauseAssessment()
     };
+    controlDiv.appendChild(startBtn);
+    controlDiv.appendChild(pauseBtn);
     assessDiv.appendChild(wrapperDiv);
-    assessDiv.appendChild(startBtn);
-    assessDiv.appendChild(pauseBtn);
+    assessDiv.appendChild(controlDiv);
 
+
+    //rendering objects that come after the questions
+    var buttonContainer = document.createElement('div');
+    $(buttonContainer).attr({'style':'text-align:center'});
+    var finishButton = document.createElement('button');
+    $(finishButton).attr({
+        'id':'finish',
+        'class':'btn btn-inverse'
+    });
+    finishButton.textContent = "Submit answers";
+    finishButton.onclick = function() {
+        _this.finishAssessment()
+    };
+    buttonContainer.appendChild(finishButton);
+    var score = document.createElement('P');
+    score.id = 'results';
+
+    timedDiv.appendChild(buttonContainer);
+    timedDiv.appendChild(score);
 
     assessDiv.appendChild(timedDiv);
     $(this.origElem).replaceWith(assessDiv);
+
+
 }
+
 
 Timed.prototype.renderMCMFquestions = function() {
     //this finds all the MCMF questions and call their constructor method
@@ -839,17 +878,16 @@ Timed.prototype.renderMCMAquestions = function() {
 Timed.prototype.renderFIBquestions = function() {
     //this finds all the FIB questions and calls their constructor method
     //Also adds them to FIBList
-    console.log("balls");
     var _this = this
     for (var i=0; i< this.children.length; i++){
         var tmpChild = this.children[i];
-        if ($(tmpChild).is("[data-component=multiplechoice]")) {
+        if ($(tmpChild).is("[data-component=fillintheblank]")) {
             var newFITB = new FITB({'orig':tmpChild});
             _this.FITBArray.push(newFITB);
-            console.log(_this.FITBArray);
         }
     }
 }
+
 
 Timed.prototype.startAssessment = function() {
     var _this = this;
@@ -871,7 +909,8 @@ Timed.prototype.startAssessment = function() {
         _this.running = 0;
         _this.done = 1;
         $('#timed_Test').show();
-        //_this.checkTimedStorage();
+        $('#output').text('Already completed');
+        _this.checkTimedStorage();
     }
 }
 
@@ -895,16 +934,18 @@ Timed.prototype.pauseAssessment = function(){
 Timed.prototype.showTime = function() {
 	var mins = Math.floor(this.timeLimit/60);
 	var secs = Math.floor(this.timeLimit) % 60;
+    var minsString = mins;
+    var secsString = secs;
 
 	if(mins<10){
-		mins = "0" + mins;
+		minsString = "0" + mins;
 	}
 	if(secs<10){
-		secs = "0" + secs;
+		secsString = "0" + secs;
 	}
-    var timeString = "Time Remaining  " + mins + ":" + secs;
+    var timeString = "Time Remaining  " + minsString + ":" + secsString;
 
-    if(mins==0 && secs==0){
+    if(mins<=0 && secs<=0){
         timeString = "Finished";
     }
 
@@ -999,6 +1040,17 @@ Timed.prototype.getPageName = function() {
 	return name;
 }
 
+Timed.prototype.finishAssessment = function() {
+    var _this = this;
+    this.timeLimit = 0;
+    this.running = 0;
+    this.done = 1;
+    this.taken = 1;
+    this.checkTimedStorage();
+    this.checkScore();
+
+}
+
 Timed.prototype.checkTimedStorage = function() {
     var _this = this;
     for (var i=0; i<this.MCMAList.length; i++) {
@@ -1007,7 +1059,6 @@ Timed.prototype.checkTimedStorage = function() {
     for (var i=0; i<this.MCMFList.length; i++) {
         _this.MCMFList[i].checkMCMFStorage();
     }
-    console.log(this.FITBArray);
     for (var i=0; i<_this.FITBArray.length; i++) {
         _this.FITBArray[i].checkFITBStorage();
     }
@@ -1015,24 +1066,34 @@ Timed.prototype.checkTimedStorage = function() {
 
 Timed.prototype.checkScore = function() {
     var _this = this;
+    console.log(_this.score);
+
     for (var i=0; i<this.MCMAList.length; i++) {
         var correct = _this.MCMAList[i].checkCorrectTimedMCMA();
         if (correct) {
             this.score++;
         }
     }
+    console.log(_this.score);
+
     for (var i=0; i<this.MCMFList.length; i++) {
+
         var correct = _this.MCMFList[i].checkCorrectTimedMCMF();
         if (correct) {
             this.score++;
         }
     }
+    console.log(_this.score);
+
     for (var i=0; i<this.FITBArray.length; i++) {
+
         var correct = _this.FITBArray[i].checkCorrectTimedFITB();
         if (correct) {
             this.score++;
         }
     }
+    console.log(_this.score);
+
 }
 
 //Function that calls the methods to construct the components on page load
