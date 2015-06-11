@@ -23,7 +23,6 @@ import json
 import random
 
 
-
 class MChoiceNode(nodes.General, nodes.Element):
     def __init__(self,content):
         """
@@ -34,7 +33,6 @@ class MChoiceNode(nodes.General, nodes.Element):
         """
         super(MChoiceNode,self).__init__()
         self.mc_options = content
-
 
 def visit_mc_node(self,node):
     res = ""
@@ -116,6 +114,7 @@ class MChoice(Assessment):
             .. mchoice:: qname
             :multiple_answers: boolean
             :random: boolean
+            :timed: boolean
             :iscode: boolean
             :answer_a: possible answer  -- what follows _ is label
             :answer_b: possible answer
