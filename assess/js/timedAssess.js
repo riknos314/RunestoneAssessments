@@ -21,7 +21,7 @@ FITB.prototype.init = function(opts) {
     this.origElem = orig;
     this.divid = orig.id;
     this.question = null;
-    this.correct = false;
+    this.correct = null;
     this.feedbackArray = [];//Array of arrays--each inside array contains 2 elements: the regular expression, then text
     this.children = this.origElem.childNodes; //this contains all of the child elements of the entire tag...
         //... used for ensuring that only things that are part of this instance are being touchedh
@@ -169,7 +169,9 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     }
     var patt = RegExp(this.correctAnswer, modifiers);
     var isCorrect = patt.test(given);
-    this.correct = isCorrect;
+    if (given != "") {
+        this.correct = isCorrect;
+    };
     if (!isCorrect) {
         fbl = this.feedbackArray;
         for (var i = 0; i < fbl.length; i++) {
@@ -274,7 +276,7 @@ MultipleChoice.prototype.init = function(opts) {
         this.timed = true;
     }
 
-    this.correct = false; //bool used to inform timed instances if this question was answered correctly
+    this.correct = null; //used to inform timed instances if this question was answered correctly
 
     this.answerList = [];
     this.correctList = [];
@@ -657,6 +659,8 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
 
     if (given == this.correctAnswerIndex) {
         this.correct = true;
+    } else if (given != null) { //if given is null then the question wasn't answered and should be counted as skipped
+        this.correct = false;
     }
     //Saving data in local storage
     var storage_arr = new Array();
@@ -696,9 +700,10 @@ MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
 MultipleChoice.prototype.checkCorrectTimedMCMA = function() {
     var _this = this;
 
-    _this.correct = false;
     if (_this.correctCount == _this.correctArray.length && _this.correctArray.length == _this.givenArray.length) {
         _this.correct = true;
+    } else if (_this.givenArray.length != 0) {
+        _this.correct = false;
     }
     return _this.correct;
 };
@@ -748,7 +753,7 @@ function Timed(opts) {
     if (opts) {
         this.init(opts);
     }
-}
+};
 
 Timed.prototype.init = function(opts) {
     RunestoneBase.apply(this, arguments);
@@ -762,6 +767,8 @@ Timed.prototype.init = function(opts) {
     this.done = 0;
     this.taken = 0;
     this.score = 0;
+    this.incorrect = 0;
+    this.skipped = 0;
 
     this.MCMFList = []; //list of MCMF problems
     this.MCMAList = []; //list of MCMA problems
@@ -799,7 +806,7 @@ Timed.prototype.renderTimedAssessFramework= function() {
     var startBtn = document.createElement('btn');
     var pauseBtn = document.createElement('btn');
     $(startBtn).attr({
-        'class':'btn btn-inverse',
+        'class':'btn btn-default',
         'id':'start'
     });
     startBtn.textContent = "Start";
@@ -807,7 +814,7 @@ Timed.prototype.renderTimedAssessFramework= function() {
         _this.startAssessment()
     };
     $(pauseBtn).attr({
-        'class':'btn btn-inverse',
+        'class':'btn btn-default',
         'id':'pause'
     });
     pauseBtn.textContent = "Pause";
@@ -1066,34 +1073,41 @@ Timed.prototype.checkTimedStorage = function() {
 
 Timed.prototype.checkScore = function() {
     var _this = this;
-    console.log(_this.score);
 
     for (var i=0; i<this.MCMAList.length; i++) {
         var correct = _this.MCMAList[i].checkCorrectTimedMCMA();
         if (correct) {
             this.score++;
+        } else if (correct == null) {
+            this.skipped++;
+        } else {
+            this.incorrect++;
         }
     }
-    console.log(_this.score);
 
     for (var i=0; i<this.MCMFList.length; i++) {
 
         var correct = _this.MCMFList[i].checkCorrectTimedMCMF();
         if (correct) {
             this.score++;
+        } else if (correct == null) {
+            this.skipped++;
+        } else {
+            this.incorrect++;
         }
     }
-    console.log(_this.score);
 
     for (var i=0; i<this.FITBArray.length; i++) {
 
         var correct = _this.FITBArray[i].checkCorrectTimedFITB();
         if (correct) {
             this.score++;
+        } else if (correct == null) {
+            this.skipped++;
+        } else {
+            this.incorrect++;
         }
     }
-    console.log(_this.score);
-
 }
 
 //Function that calls the methods to construct the components on page load
