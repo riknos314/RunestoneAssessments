@@ -2,25 +2,6 @@
   Created by Isaiah Mayerchak and Kirby Olson on 6/4/15
   */
 
-
-//start with basic parent stuff
-
-function RunestoneBase() {  //Parent function
-
-}
-
-RunestoneBase.prototype.logBookEvent = function(info) {
-    console.log("logging event " + this.divid);
-};
-
-RunestoneBase.prototype.logRunEvent = function(info) {
-    console.log("running " + this.divid);
-};
-
-
-
-
-
 //Fill-in-the-blank part
 
 var FITBList = {};  //Fill-in-the-blank dictionary
@@ -171,6 +152,7 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     var given = document.getElementById(this.divid + "blank").value;
     // update number of trials??
     // log this to the db
+    console.log("butts");
     modifiers = '';
     if (this.casei) {
         modifiers = 'i'
@@ -711,13 +693,13 @@ MultipleChoice.prototype.checkCorrectTimedMCMF = function() {
 MultipleChoice.prototype.feedBackTimedMC = function() {
     var _this = this;
     for (var i = 0; i < this.answerList.length; i++) {
-        var feedbackobj = $('#'+_this.divid+"_eachFeedback_"+1);
+        var feedbackobj = $('#'+_this.divid+"_eachFeedback_"+i);
         $(feedbackobj).text(_this.feedbackList[i]);
-        var tmpid = _this.answerList[1].id;
-        if (_this.correctList.indexOf(tmpid)) {
-            $(feedbackobj).attr({'style':'alert alert-success'});
+        var tmpid = _this.answerList[i].id;
+        if (_this.correctList.indexOf(tmpid) >=0) {
+            $(feedbackobj).attr({'class':'alert alert-success'});
         } else {
-            $(feedbackobj).attr({'style':'alert alert-danger'});
+            $(feedbackobj).attr({'class':'alert alert-danger'});
         }
     }
 };
@@ -766,7 +748,7 @@ Timed.prototype.init = function(opts) {
 
     this.MCMFList = []; //list of MCMF problems
     this.MCMAList = []; //list of MCMA problems
-    this.FITBList = [];  //list of FIB problems
+    this.FITBArray = [];  //list of FIB problems
 
     this.renderMCMFquestions();
     this.renderMCMAquestions();
@@ -857,12 +839,14 @@ Timed.prototype.renderMCMAquestions = function() {
 Timed.prototype.renderFIBquestions = function() {
     //this finds all the FIB questions and calls their constructor method
     //Also adds them to FIBList
+    console.log("balls");
     var _this = this
     for (var i=0; i< this.children.length; i++){
         var tmpChild = this.children[i];
         if ($(tmpChild).is("[data-component=multiplechoice]")) {
             var newFITB = new FITB({'orig':tmpChild});
-            _this.FITBList.push(newFITB);
+            _this.FITBArray.push(newFITB);
+            console.log(_this.FITBArray);
         }
     }
 }
@@ -918,11 +902,16 @@ Timed.prototype.showTime = function() {
 	if(secs<10){
 		secs = "0" + secs;
 	}
+    var timeString = "Time Remaining  " + mins + ":" + secs;
 
-	document.getElementById("output").innerHTML = "Time Remaining  " + mins + ":" + secs;
+    if(mins==0 && secs==0){
+        timeString = "Finished";
+    }
+
+	document.getElementById("output").innerHTML = timeString;
 	var timeTips = document.getElementsByClassName("timeTip");
 		for(var i = 0; i<= timeTips.length - 1; i++){
-			timeTips[i].title = mins + ":" + secs;
+			timeTips[i].title = timeString;
 	}
 }
 
@@ -937,9 +926,12 @@ Timed.prototype.increment = function(){
 			    _this.increment();
 			// ran out of time
 		    }else{
+                $('#pause').attr({'disabled':'true'});
+                $('#finish').attr({'disabled':'true'});
 			     _this.running = 0;
 			     _this.done = 1;
 			    if(_this.taken == 0){
+                    _this.taken = 1;
 			        _this.checkTimedStorage();
 			    }
 		    }
@@ -1015,8 +1007,9 @@ Timed.prototype.checkTimedStorage = function() {
     for (var i=0; i<this.MCMFList.length; i++) {
         _this.MCMFList[i].checkMCMFStorage();
     }
-    for (var i=0; i<_this.FITBList.length; i++) {
-        _this.FITBList[i].checkFITBStorage();
+    console.log(this.FITBArray);
+    for (var i=0; i<_this.FITBArray.length; i++) {
+        _this.FITBArray[i].checkFITBStorage();
     }
 }
 
@@ -1034,8 +1027,8 @@ Timed.prototype.checkScore = function() {
             this.score++;
         }
     }
-    for (var i=0; i<this.FITBList.length; i++) {
-        var correct = _this.FITBList[i].checkCorrectTimedFITB();
+    for (var i=0; i<this.FITBArray.length; i++) {
+        var correct = _this.FITBArray[i].checkCorrectTimedFITB();
         if (correct) {
             this.score++;
         }
