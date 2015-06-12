@@ -25,7 +25,6 @@ import random
 
 
 
-print("Count Terminal the 4th sends his greetings")
 class FITBNode(nodes.General, nodes.Element):
     def __init__(self,content):
         """
@@ -51,7 +50,6 @@ def visit_fitb_node(self,node):
         
 
 def depart_fitb_node(self,node):
-    print(node.fitb_options)
     fbl = []
     res = ""
     feedCounter = 0
