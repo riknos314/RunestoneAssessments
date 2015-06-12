@@ -409,7 +409,7 @@ MultipleChoice.prototype.createMCForm = function() {    //Creates form that hold
         input.value = String(j);
         var tmpid = String(this.divid) + "_opt_" + String(j);    //what makes id's unique is the index of where it is in answerList
         input.id = tmpid;
-        $(label).attr('for', String(tmpid));
+        $(label).attr('for', tmpid);
         $(label).text(this.answerList[j].content);
 
         feedbackEach.id = this.divid + "_eachFeedback_" + j;
