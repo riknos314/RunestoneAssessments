@@ -83,7 +83,6 @@ class StartTimed(Directive):
             '''
 
 
-        print(self.options)
         stNode = timedNode(self.options)
         stNode.template_start = TEMPLATE_START
         stNode.template_end = TEMPLATE_END
@@ -121,7 +120,6 @@ class EndTimed(Directive):
 
 
 
-        print(self.options)
         etNode = timedNode(self.options)
         etNode.template_start = TEMPLATE_START
         etNode.template_end = TEMPLATE_END

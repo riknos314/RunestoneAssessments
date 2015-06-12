@@ -31,12 +31,19 @@ Reveal.prototype.init = function(opts) {
     this.divid = orig.id;
     this.dataModal = false;
     this.modalTitle = null;
+  	this.showtitle = null;  //defaults
+  	this.hidetitle = null;
+
+  	this.wrapDiv = document.createElement('div'); //wrapper div
+
     if ($(this.origElem).is('[data-modal]')) {
     	this.dataModal = true;
     }
     this.isHidden = true;
 
     this.origContent = $(this.origElem).html();
+
+    this.getButtonTitles();
     this.createShowButton();
     if (this.dataModal) {
     	this.checkForTitle();
@@ -46,28 +53,38 @@ Reveal.prototype.init = function(opts) {
     
 }   
 
+Reveal.prototype.getButtonTitles = function() {
+	this.showtitle = $(this.origElem).data('showtitle');
+	if (this.showtitle == undefined) {
+		this.showtitle = "Show"; //default
+	}
+	this.hidetitle = $(this.origElem).data('hidetitle');
+	if (this.hidetitle == undefined) {
+		this.hidetitle = "Hide"; //default
+	}
+}
 
 Reveal.prototype.checkForTitle = function() {
 	this.modalTitle = $(this.origElem).data('title');
 	if (this.modalTitle == undefined) {
-		this.modalTitle = "Message from the author";
+		this.modalTitle = "Message from the author"; //default
 	}
 }
 
 Reveal.prototype.createShowButton = function() {
 	//create wrapper div
-	var wrapDiv = document.createElement('div');
-	var revealDiv = document.createElement('div');
-	wrapDiv.appendChild(revealDiv);
+	var revealDiv = document.createElement('div');    //Div that is hidden that contains content
+	revealDiv.id = this.divid;
+	this.wrapDiv.appendChild(revealDiv);
 	$(revealDiv).html(this.origContent);
 	$(revealDiv).hide()
-	$(this.origElem).replaceWith(wrapDiv);
+	$(this.origElem).replaceWith(this.wrapDiv);
+
 	var _this = this;
 	var sbutt = document.createElement('button');
-	this.origElem.appendChild(sbutt)
 	sbutt.style = 'margin-bottom:10px';
 	sbutt.class = 'btn btn-default reveal_button';
-	sbutt.textContent = "Show";
+	sbutt.textContent = this.showtitle;
 	sbutt.id = this.divid + "_show"
 	sbutt.onclick = function() {
 		if (_this.dataModal) {
@@ -79,21 +96,22 @@ Reveal.prototype.createShowButton = function() {
 		}
 
 	}
-	wrapDiv.appendChild(sbutt);
+	this.wrapDiv.appendChild(sbutt);
 }
 
 Reveal.prototype.createHideButton = function() {
 	var _this = this;
 	var hbutt = document.createElement('button');
-	document.body.appendChild(hbutt);
 	$(hbutt).hide();
-	hbutt.textContent = "Hide";
+	hbutt.textContent = this.hidetitle;
 	hbutt.class = 'btn btn-default reveal_button';
 	hbutt.id = this.divid + "_hide"
 	hbutt.onclick = function() {
 		_this.hideInline();
 		$(this).hide();
 	}
+	this.wrapDiv.appendChild(hbutt);
+
 }
 
 
@@ -118,14 +136,14 @@ Reveal.prototype.showModal = function() {
 
 
 Reveal.prototype.showInline = function () {
-	$(this.origElem).show();
+	$("#" + this.divid).show();
 	$("#" + this.divid + "_hide").show();
-	$(this.origElem).find('.CodeMirror').each(function(i, el){el.CodeMirror.refresh()});   //Not sure what this is for
+	$("#" + this.divid).find('.CodeMirror').each(function(i, el){el.CodeMirror.refresh()});   //Not sure what this is for
 
 }
 
 Reveal.prototype.hideInline = function() {
-	$(this.origElem).hide();
+	$("#" + this.divid).hide();
 	$("#" + this.divid + "_show").show();
 }
 
