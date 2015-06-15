@@ -32,14 +32,24 @@ TabbedStuff.prototype.init = function(opts) {
     this.origElem = orig;
     this.divid = orig.id;
 
+    this.inactive = false;
+    if ($(this.origElem).is('[data-inactive]')) {
+    	this.inactive = true;
+    }
+
+
     this.togglesList = [];
     this.childTabs = []
     this.populateChildTabs();
+
+    this.activeTab = 0; //default value--activeTab is the index of the tab that starts open
+    this.findActiveTab();
 
     this.createTabs();
 
 
 }
+
 
 TabbedStuff.prototype.populateChildTabs = function() {           //Populate this.childTabs with all child nodes that have the data-component="tab" attribute
 	for (var i=0; i<this.origElem.childNodes.length; i++) {
@@ -49,19 +59,29 @@ TabbedStuff.prototype.populateChildTabs = function() {           //Populate this
     }
 }
 
+TabbedStuff.prototype.findActiveTab = function() {
+	for (var i=0; i<this.childTabs.length; i++) {
+		if ($(this.childTabs[i]).is('[data-active]')) {
+			this.activeTab = i;
+		}
+	}
+}
 
 TabbedStuff.prototype.createTabs = function() {                  //Create HTML elements to append to DOM
+	var _this = this;
 	var replacementDiv = document.createElement('div');
 	replacementDiv.id = this.divid;
 	$(replacementDiv).addClass("alert alert-warning");
+	$(replacementDiv).attr({'role':'tabpanel'});
 
 	var tabsUL = document.createElement('ul');
 	tabsUL.id = this.divid + "_tab";
 	$(tabsUL).addClass('nav nav-tabs');
+	$(tabsUL).attr({'role':'tablist'});
 
 
 	var tabContentDiv = document.createElement('div');   	//Create tab content area
-	$(tabContentDiv).addClass("tab content");
+	$(tabContentDiv).addClass("tab-content");
 
 
 
@@ -73,11 +93,16 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 		var tabfriendlyname = temp.join("");
 
 		var tabListElement = document.createElement('li');
+		$(tabListElement).attr({
+			'role':'presentation',
+			'aria-controls':this.tabfriendlyname
+		});
 		var tabElement = document.createElement('a');
 
 		$(tabElement).attr({
 			'data-toggle':'tab',
-			'href': '#' + this.divid + "-" + tabfriendlyname
+			'href':'#' + this.divid + "-" + tabfriendlyname,
+			'role':'tab'
 		});
 		var tabTitle = document.createElement('span');
 		tabTitle.textContent = $(this.childTabs[i]).data("tabname");
@@ -90,8 +115,19 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 		var tabPaneDiv = document.createElement('div');
 		tabPaneDiv.id = this.divid + "-" + tabfriendlyname;
 		$(tabPaneDiv).addClass("tab-pane");
+		$(tabPaneDiv).attr({
+			'role':'tabpanel'
+		});
 		var tabHTML = $(this.childTabs[i]).html();
 		$(tabPaneDiv).html(tabHTML);
+
+		if (!_this.inactive) {
+			if (_this.activeTab == i) {
+				$(tabListElement).addClass('active');
+				$(tabPaneDiv).addClass('active');
+			}	
+		}
+
 
 		this.togglesList.push(tabElement);
 
@@ -103,20 +139,14 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 	replacementDiv.appendChild(tabContentDiv);
 
 
-
-	console.log($(this.togglesList));
-
-	$(this.togglesList).click(function (e) {
+	/*$(this.togglesList).click(function (e) {
             e.preventDefault();
             $(this).tab('show');
-        })
+        })*/
 
-        // activate the first tab
-        var el = $(this.togglesList)[0];
-        $(el).tab('show');
 
         $(this.togglesList).on('shown.bs.tab', function (e) {
-            var content_div = $(e.target.attributes.href.value);
+            var content_div = $(e.target.attributes.href.value);        //possible issue with this--we'll see when we do the Sphinx implementation
             content_div.find('.disqus_thread_link').each(function() {
                 $(this).click();
             });
@@ -128,30 +158,6 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 
 	$(this.origElem).replaceWith(replacementDiv);
 }
-/*
-
-TABCONTENT_BEGIN = """<div class='tab-content'>"""
-TABCONTENT_END = """</div>"""
-
-TABDIV_BEGIN = """<div class='tab-pane' id='%(divid)s-%(tabname)s'>"""
-
-TABDIV_END = """</div>""" 
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 $(document).ready(function() {
     $('[data-component=tabbedStuff]').each(function(index){
