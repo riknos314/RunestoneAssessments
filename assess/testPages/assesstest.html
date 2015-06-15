@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
 	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
 	<script type="text/javascript" src="../../globalJS/runestoneBase.js"></script>
-	<script type="text/javascript" src="http://interactivepython.org/runestone/static/thinkcspy/_static/bookfuncs.js"></script>
+	<script type="text/javascript" src="../../globalJS/bookfuncs.js"></script>
 	<script type="text/javascript" src="http://www.interactivepython.org/runestone/static/thinkcspy/_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="../js/timedAssess.js"></script>
 	<script type="text/javascript" src="../../reveal/reveal.js"></script>
@@ -31,6 +31,25 @@
 		<p>HIIIIII</p>
 	</div>
 
+	<ul data-component="multiplechoice" data-multipleanswers="false" id="question-1">
+	The Question can go right here.
+		<li data-component="answer" id="123" >Answer One</li>
+		<li data-component="feedback" for="123">Feedback for One</li>
+
+		<li data-component="answer" id="456">Answer Two</li>
+		<li data-component="feedback" for="456">Feedback for Two</li>
+
+		<li data-component="answer" id="789" data-correct>Answer Three</li>
+		<li data-component="feedback" for="789">Feedback for Three</li>
+
+		<li data-component="answer" id="1011" data-correct>Answer Four</li>
+		<li data-component="feedback" for="1011">Feedback for Four</li>
+
+		<li data-component="answer" id="1112" data-correct>Answer Five</li>
+		<li data-component="feedback" for="1112">Feedback for Five</li>
+
+
+	</ul>
 	<p data-component="fillintheblank" data-casei="false" id="blank-1">
 		Enter a string that contains the letter 'e'!
 
