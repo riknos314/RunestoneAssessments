@@ -21,11 +21,13 @@ Poll.prototype.init = function (opts) {
 	this.optionList = [];
 
 	this.getQuestionText();
-	this.getOptionText();
-	this.renderPoll();
+	this.getOptionText(); //populates optionList
+	this.renderPoll();  //generates HTML
+	this.checkPollStorage(); //checks localStorage to see if this poll has already been completed by this user
 }
 
 Poll.prototype.getQuestionText = function() {
+	//finds the text inside the parent tag, but before the first <li> tag and sets it as the question
 	var _this = this;
 	for (var i=0; i<this.children.length; i++) {
 		if (this.children[i].tagName == "LI") {
@@ -40,6 +42,7 @@ Poll.prototype.getQuestionText = function() {
 };
 
 Poll.prototype.getOptionText = function() {
+	//Gets the text from each <li> tag and places it in this.optionList
 	var _this = this;
 	for (var i=0; i<this.children.length; i++) {
 		if (_this.children[i].tagName == "LI") {
@@ -49,6 +52,7 @@ Poll.prototype.getOptionText = function() {
 }
 
 Poll.prototype.renderPoll = function() {
+	//generates the HTML that the user interacts with
 	var _this = this;
 	this.containerDiv = document.createElement('div');
 	this.pollForm = document.createElement('form');
@@ -103,6 +107,7 @@ Poll.prototype.renderPoll = function() {
 }
 
 Poll.prototype.submitPoll = function() {
+	//checks the poll, sets localstorage and submits to the server
 	var poll_val = $(this.pollForm).find("input:radio[name="+this.divid +"_group1]:checked").val();
     if(poll_val === undefined)
         return;
@@ -125,7 +130,7 @@ Poll.prototype.submitPoll = function() {
 }
 
 Poll.prototype.showPollResults = function(data) {
-
+	//displays the results returned by the server
 	results = eval(data);
     var total = results[0];
     var opt_list = results[1];
@@ -147,9 +152,20 @@ Poll.prototype.showPollResults = function(data) {
     this.resultsDiv.append(list);
 }
 
-Poll.prototype.checkPollStorage = function() {
-	
+Poll.prototype.disableOptions = function() {
+
 }
+
+Poll.prototype.checkPollStorage = function() {
+	//checks the localstorage to see if the poll has been completed already
+	var _this = this;
+    var len = localStorage.length;
+	if (len > 0) { //If the poll has already been completed, show the results
+		jQuery.get(eBookConfig.ajaxURL+'getpollresults', data, this.showPollResults());
+	}
+}
+
+
 
 
 $(document).ready(function() {
