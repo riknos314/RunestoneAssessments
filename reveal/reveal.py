@@ -17,7 +17,7 @@ class RevealNode(nodes.General, nodes.Element):
         self.reveal_options = content
 
 
-def visit_reveal_node(self, node):
+def visit_reveal_node(self, node):  #Set options and format templates accordingly
 
     if 'modal' in node.reveal_options:
         node.reveal_options['modal'] = 'data-modal'
@@ -30,7 +30,6 @@ def visit_reveal_node(self, node):
     else:
         node.reveal_options['modaltitle'] = ''
 
-    print(node.reveal_options)
     res = TEMPLATE_START % node.reveal_options
     self.body.append(res)
 
@@ -57,7 +56,7 @@ class RevealDirective(Directive):
 
     def run(self):
         """
-            process the multiplechoice directive and generate html for output.
+            process the reveal directive and generate html for output.
             :param self:
             :return:
             .. reveal:: identifier
@@ -69,7 +68,7 @@ class RevealDirective(Directive):
             Content
             ...
             """
-        self.assert_has_content() # an empty reveal block isn't very useful...
+        self.assert_has_content() # make sure reveal has something in it
 
         if not 'showtitle' in self.options:
             self.options['showtitle'] = 'data-showtitle="Show"'
