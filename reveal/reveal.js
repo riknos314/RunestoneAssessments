@@ -1,7 +1,6 @@
  /*
   Created by Isaiah Mayerchak on 6/12/15
   */
-
 function RunestoneBase() {  //Parent function
 
 }
@@ -30,7 +29,7 @@ Reveal.prototype.init = function(opts) {
     this.origElem = orig;
     this.divid = orig.id;
     this.dataModal = false;
-    this.modalTitle = null;
+    this.modalTitle = null;   //is a model dialog vs. inline
   	this.showtitle = null;  //defaults
   	this.hidetitle = null;
 
@@ -39,7 +38,6 @@ Reveal.prototype.init = function(opts) {
     if ($(this.origElem).is('[data-modal]')) {
     	this.dataModal = true;
     }
-    this.isHidden = true;
 
     this.origContent = $(this.origElem).html();
 
@@ -53,7 +51,7 @@ Reveal.prototype.init = function(opts) {
     
 }   
 
-Reveal.prototype.getButtonTitles = function() {
+Reveal.prototype.getButtonTitles = function() {           //to support old functionality
 	this.showtitle = $(this.origElem).data('showtitle');
 	if (this.showtitle == undefined) {
 		this.showtitle = "Show"; //default
@@ -116,7 +114,7 @@ Reveal.prototype.createHideButton = function() {
 
 
 
-Reveal.prototype.showModal = function() {
+Reveal.prototype.showModal = function() {   //Displays popup dialog modal window
 	var html = '<div class="modal fade">' +
         '  <div class="modal-dialog compare-modal">' +
         '    <div class="modal-content">' +
@@ -135,8 +133,8 @@ Reveal.prototype.showModal = function() {
 }
 
 
-Reveal.prototype.showInline = function () {
-	$("#" + this.divid).show();
+Reveal.prototype.showInline = function () {    //Displays inline version of reveal
+	$("#" + this.divid).show();     //revealDiv
 	$("#" + this.divid + "_hide").show();
 	$("#" + this.divid).find('.CodeMirror').each(function(i, el){el.CodeMirror.refresh()});   //Not sure what this is for
 
