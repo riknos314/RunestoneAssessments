@@ -1,9 +1,25 @@
+# Copyright (C) 2011  Bradley N. Miller
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 __author__ = 'isaiahmayerchak'
 
 from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 
+#add directives/javascript/css
 def setup(app):
     app.add_directive('reveal', RevealDirective)
 
@@ -17,7 +33,8 @@ class RevealNode(nodes.General, nodes.Element):
         self.reveal_options = content
 
 
-def visit_reveal_node(self, node):  #Set options and format templates accordingly
+def visit_reveal_node(self, node):
+#Set options and format templates accordingly
 
     if 'modal' in node.reveal_options:
         node.reveal_options['modal'] = 'data-modal'
@@ -34,10 +51,12 @@ def visit_reveal_node(self, node):  #Set options and format templates accordingl
     self.body.append(res)
 
 def depart_reveal_node(self,node):
+#Set options and format templates accordingly
     res = TEMPLATE_END % node.reveal_options
 
     self.body.append(res)
 
+#Templates to be formatted by node options
 TEMPLATE_START = '''
     <div data-component="reveal" id="%(divid)s" %(modal)s %(modaltitle)s %(showtitle)s %(hidetitle)s>
     '''
@@ -64,7 +83,7 @@ class RevealDirective(Directive):
             :hidetitle: Text on the 'hide' button--default is "Hide"
             :modal: Boolean--if included, revealed display will be a modal
             :modaltitle: Title of modal dialog window--default is "Message from the author"
-           
+
             Content
             ...
             """
