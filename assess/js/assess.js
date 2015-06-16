@@ -219,9 +219,9 @@ FITB.prototype.renderFITBFeedbackDiv = function () {
   this.inputDiv.appendChild(this.feedBackDiv);
 };
 
-/*
-Other functions #fix this comment
-*/
+/*==============================
+=== Local storage & feedback ===
+===============================*/
 
 FITB.prototype.checkPreviousFIB = function () {
     // This function repoplulates FIB questions with a user's previous answers,
@@ -457,6 +457,124 @@ MultipleChoice.prototype.renderMCContainer = function () {
   this.MCContainer.id = this.divid;
 };
 
+MultipleChoice.prototype.renderMCForm = function () {
+  this.optsForm = document.createElement('form');
+  this.optsForm.id = this.divid + '_form';
+  $(this.optsForm).attr({
+    'method': 'get',
+    'action': '',
+    'onsubmit': 'return false;'
+  });
+
+  // generate form options
+  this.renderMCFormOpts();
+  console.log(this.optsForm);
+
+  // If timed, don't render buttons
+  if (!this.timed) {
+    this.renderMCFormButtons();
+  }
+
+  // Append the form to the container
+  this.MCContainer.appendChild(this.optsForm);
+};
+
+MultipleChoice.prototype.renderMCFormOpts = function () {
+  this.optionArray = []; // array with an object for each option containing the input and label for that option
+  var input_type = 'radio';
+  if (this.multipleanswers) {
+    input_type = 'checkbox';
+  }
+  // this.indexArray is used to index through the answers
+  // it is just 0-n normally, but the order is shuffled if the random option is present
+  this.indexArray = [];
+  for (var i = 0; i < this.answerList.length; i++) {
+    this.indexArray.push(i);
+  }
+
+  if (this.random) {
+    this.randomizeAnswers();
+  }
+
+  for (var j = 0; j < this.answerList.length; j++) {
+    var k = this.indexArray[j];
+    var optid = this.divid + '_opt_' + j;
+
+    // Create the input
+    var input = document.createElement('input');
+    input.type = input_type;
+    input.name = 'group1';
+    input.value = String(j);
+    input.id = optid;
+
+    // Create the label for the input
+    var label = document.createElement('label');
+    $(label).attr('for', optid);
+    $(label).text(this.answerList[j].content);
+
+    // create the object to store in optionArray
+    var optObj = {
+      input: input,
+      label: label
+      };
+    this.optionArray.push(optObj);
+
+    // add the option to the form
+    this.optsForm.appendChild(input);
+    this.optsForm.appendChild(label);
+    this.optsForm.appendChild(document.createElement('br'));
+
+    // if timed, add a feedback Div for the option
+    if (this.timed) {
+      var feedBackEach = document.createElement('div');
+      feedBackEach.id = this.divid + 'eachFeedback_' + k;
+      this.optsForm.appendChild(feedBackEach);
+    }
+  }
+};
+
+MultipleChoice.prototype.renderMCFormButtons = function () {
+  var _this = this;  // used for defining onclick functions because of the different scope
+
+  // Create submit button
+  this.submitButton = document.createElement('button');
+  this.submitButton.textContent = 'Check Me';
+  $(this.submitButton).attr({
+    'class': 'btn btn-success',
+    'name': 'do answer'
+  });
+  if (this.multipleanswers) {
+    this.submitButton.onclick = function () {
+      _this.checkMCMAStorage();
+    };
+  } else {
+    this.submitButton.onclick = function () {
+      _this.checkMCMFStorage();
+    };
+  } // end else
+  this.optsForm.appendChild(this.submitButton);
+
+  // Create compare button
+  this.compareButton = document.createElement('button');
+  $(this.compareButton).attr({
+    'class': 'btn btn-default',
+    'id': this.divid + '_bcomp',
+    'disabled': '',
+    'name': 'compare'
+  });
+  this.compareButton.textContent = 'Compare me';
+  this.compareButton.onclick = function () {
+    _this.compareAnswers(_this.divid);
+  };
+  this.optsForm.appendChild(this.compareButton);
+};
+
+MultipleChoice.prototype.renderMCfeedbackDiv = function () {
+  this.feedBackDiv = document.createElement('div');
+  this.feedBackDiv.id = this.divid + '_feedback';
+  this.MCContainer.appendChild(this.feedBackDiv);
+};
+
 MultipleChoice.prototype.randomizeAnswers = function () {
   var currentIndex = this.indexArray.length, temporaryValue, randomIndex;
   // While there remain elements to shuffle...
@@ -474,6 +592,8 @@ MultipleChoice.prototype.randomizeAnswers = function () {
     this.feedbackList[randomIndex] = temporaryFeedback;
   }
 };
+
+
 
 MultipleChoice.prototype.restoreLocalAnswers = function () {     // Handles local storage
   if (this.multipleanswers) {
