@@ -101,7 +101,7 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 
 		$(tabElement).attr({
 			'data-toggle':'tab',
-			'href':'#' + this.divid + "-" + tabfriendlyname,
+			'href':'#' + this.divid + '-' + tabfriendlyname,
 			'role':'tab'
 		});
 		var tabTitle = document.createElement('span');
