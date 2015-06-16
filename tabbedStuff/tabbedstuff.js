@@ -89,19 +89,17 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 	for (var i=0; i<this.childTabs.length; i++) {
 		//First create tabname and tabfriendly name that has no spaces to be used for the id
 		var tabname = $(this.childTabs[i]).data("tabname");
-		var temp = tabname.split(" ");
-		var tabfriendlyname = temp.join("");
 
 		var tabListElement = document.createElement('li');
 		$(tabListElement).attr({
 			'role':'presentation',
-			'aria-controls':this.tabfriendlyname
+			'aria-controls':this.divid + '-' + i
 		});
 		var tabElement = document.createElement('a');
 
 		$(tabElement).attr({
 			'data-toggle':'tab',
-			'href':'#' + this.divid + '-' + tabfriendlyname,
+			'href':'#' + this.divid + '-' + i,
 			'role':'tab'
 		});
 		var tabTitle = document.createElement('span');
@@ -113,7 +111,7 @@ TabbedStuff.prototype.createTabs = function() {                  //Create HTML e
 	
 		//tabPane is what holds the contents of the tab
 		var tabPaneDiv = document.createElement('div');
-		tabPaneDiv.id = this.divid + "-" + tabfriendlyname;
+		tabPaneDiv.id = this.divid + "-" + i;
 		$(tabPaneDiv).addClass("tab-pane");
 		$(tabPaneDiv).attr({
 			'role':'tabpanel'
