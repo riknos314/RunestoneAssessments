@@ -1,7 +1,15 @@
- /*
-  Created by Isaiah Mayerchak and Kirby Olson on 6/4/15
-  */
-
+/*==========================================
+========      Master Assess.js     =========
+============================================
+===     This file contains the JS for    ===
+=== all Runestone assessment components. ===
+============================================
+===              Created By              ===
+===           Isaiah Mayerchak           ===
+===                 and                  ===
+===             Kirby Olson              ===
+===                6/4/15                ===
+==========================================*/
 
 //start with basic parent stuff
 
@@ -17,19 +25,58 @@ RunestoneBase.prototype.logRunEvent = function(info) {
   console.log("running " + this.divid);
 };
 
+/*=======================================
+===         Global functions          ===
+=== (used by more than one component) ===
+=======================================*/
 
-//Fill-in-the-blank part
+var feedBack = function (elem, correct, feedbackText) {    //Displays feedback on page--miscellaneous function that can be used by multple objects
+    //elem is the Element in which to put the feedback
+    if (correct) {
+        $(elem).html('You are Correct!');
+        //$(divid).css('background-color', '#C8F4AD');
+        $(elem).attr('class','alert alert-success');
+    } else {
+        if (feedbackText == null) {
+            feedbackText = '';
+        }
+        $(elem).html("Incorrect.  " + feedbackText);
+        //$(divid).css('background-color', '#F4F4AD');
+        $(elem).attr('class','alert alert-danger');
+    }
+};
 
-var FITBList = {};  //Fill-in-the-blank dictionary
+var renderTimedIcon = function(component) {
+    //renders the clock icon on timed components.  The component parameter
+    //is the element that the icon should be appended to.
+    var timeIconDiv = document.createElement("div");
+    var timeIcon = document.createElement("img");
+    $(timeIcon).attr({
+        'src':'../_static/clock.png',
+        'style':"width:15px;height:15px"
+    });
+    timeIconDiv.className = "timeTip";
+    timeIconDiv.title = "";
+    timeIconDiv.appendChild(timeIcon);
+    component.appendChild(timeIconDiv);
+}
+/*==================================================
+== Begin code for the Fill In The Blank component ==
+==================================================*/
+
+var FITBList = {};  //Object containing all instances of FITB that aren't a child of a timed assessment.
 
 FITB.prototype = new RunestoneBase();
 
-//<p> FITB constructor
+// FITB constructor
 function FITB(opts) {
     if (opts) {
         this.init(opts);
     }
 }
+/*===================================
+===    Setting FITB variables     ===
+===================================*/
 
 FITB.prototype.init = function(opts) {
     RunestoneBase.apply(this, arguments);
@@ -60,6 +107,11 @@ FITB.prototype.init = function(opts) {
     this.createFITBElement();
     this.checkPreviousFIB();
 }
+
+/*====================================
+==== Functions parsing variables  ====
+====  out of intermediate HTML    ====
+====================================*/
 
 
 FITB.prototype.findQuestion = function() {     //Gets question text and puts it into this.question
@@ -96,66 +148,86 @@ FITB.prototype.populateFeedbackArray = function() {    //Populates this.feedback
     };
 }
 
-FITB.prototype.createFITBElement = function() {      //Creates input element that is appended to DOM
-    var _this = this;
-    var inputDiv = document.createElement('div');
-    $(inputDiv).text(this.question);
-    $(inputDiv).addClass("alert alert-warning");
-    inputDiv.id = this.divid;
-    var newInput = document.createElement('input');
-    var feedbackDiv = document.createElement('div');
+/*===========================================
+====   Functions generating final HTML   ====
+===========================================*/
 
-    if (this.timed){
-        var timeIconDiv = document.createElement("div");
-        var timeIcon = document.createElement("img");
-        $(timeIcon).attr({
-            'src':'../_static/clock.png',
-            'style':"width:15px;height:15px"
-        });
-        timeIconDiv.className = "timeTip";
-        timeIconDiv.title = "";
-        timeIconDiv.appendChild(timeIcon);
-        inputDiv.appendChild(timeIconDiv);
+FITB.prototype.createFITBElement = function() {
+    this.renderFITBContainer();
+    this.renderFITBInput();
+    if (!this.timed) {
+        //don't render buttons if part of a timed assessment
+        this.renderFITBButtons();
     }
+    this.renderFITBFeedbackDiv();
 
-    $(newInput).attr({
-        'type' : 'text',
-        'id' : this.divid + 'blank',
-        'class' : 'form-control'
-        });
-
-    feedbackDiv.id = this.divid + '_feedback';
-    inputDiv.appendChild(document.createElement('br'));
-    inputDiv.appendChild(newInput);
-    inputDiv.appendChild(document.createElement('br'));
-    if (!this.timed) { //don't make buttons if part of a timed assessment
-        var butt = document.createElement('button');         //Check me button
-        butt.textContent = "Check Me";
-        $(butt).attr({
-                "class" : "btn btn-success",
-                "name" : "do answer",
-            });
-        butt.onclick = function() {
-            _this.checkFITBStorage();
-        }
-        var compButt = document.createElement("button");       //Compare me button
-        $(compButt).attr({
-            "class":"btn btn-default",
-            "id":this.origElem.id+"_bcomp",
-            "disabled":"",
-            "name":"compare",
-        });
-        compButt.textContent = "Compare Me";
-        compButt.onclick = function() {
-            _this.compareFITBAnswers();
-        }
-        inputDiv.appendChild(butt);
-        inputDiv.appendChild(compButt);
-    }
-    inputDiv.appendChild(document.createElement('br'));
-    inputDiv.appendChild(feedbackDiv);
-    $(this.origElem).replaceWith(inputDiv);
+    //replaces the intermediate HTML for this component with the rendered HTML of this component
+    $(this.origElem).replaceWith(this.inputDiv);
 }
+
+FITB.prototype.renderFITBContainer = function() {
+    //creates the parent div for the new html
+    //puts the question text in the parent div
+    this.inputDiv = document.createElement('div');
+    $(this.inputDiv).text(this.question);
+    $(this.inputDiv).addClass("alert alert-warning");
+    this.inputDiv.id = this.divid;
+    if (this.timed) {
+        renderTimedIcon(this.inputDiv);
+    };
+};
+
+FITB.prototype.renderFITBInput = function() {
+    //creates the blank and appends it to the parent div
+    this.blank = document.createElement('input');
+    $(this.blank).attr({
+        'type':"text",
+        'id':this.divid + '_blank',
+        'class':'form-control'
+    });
+    this.inputDiv.appendChild(document.createElement('br'));
+    this.inputDiv.appendChild(this.blank);
+    this.inputDiv.appendChild(document.createElement('br'));
+};
+
+FITB.prototype.renderFITBButtons = function() {
+    var _this = this;
+    this.submitButton = document.createElement('button');         //Check me button
+    this.submitButton.textContent = "Check Me";
+    $(this.submitButton).attr({
+            "class" : "btn btn-success",
+            "name" : "do answer",
+        });
+    this.submitButton.onclick = function() {
+        _this.checkFITBStorage();
+    }
+    this.compareButton = document.createElement("button");       //Compare me button
+    $(this.compareButton).attr({
+        "class":"btn btn-default",
+        "id":this.origElem.id+"_bcomp",
+        "disabled":"",
+        "name":"compare",
+    });
+    this.compareButton.textContent = "Compare Me";
+    this.compareButton.onclick = function() {
+        _this.compareFITBAnswers();
+    }
+    this.inputDiv.appendChild(this.submitButton);
+    this.inputDiv.appendChild(this.compareButton);
+    this.inputDiv.appendChild(document.createElement('div'));
+};
+
+FITB.prototype.renderFITBFeedbackDiv = function() {
+    this.feedBackDiv = document.createElement('div');
+    this.feedBackDiv.id = this.divid + "_feedback";
+    this.inputDiv.appendChild(document.createElement('br'));
+    this.inputDiv.appendChild(this.feedBackDiv);
+};
+
+
+/*
+Other functions #fix this comment
+*/
 
 FITB.prototype.checkPreviousFIB = function() {
     // This function repoplulates FIB questions with a user's previous answers,
@@ -166,19 +238,17 @@ FITB.prototype.checkPreviousFIB = function() {
         var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid);
         if (ex !== null) {
             var arr = ex.split(";");
-            var str = this.divid + "blank";
-            $("#" + str).attr("value", arr[0]);
+            $(this.blank).attr("value", arr[0]);
             if (!this.timed) {
-                document.getElementById(this.divid + '_bcomp').disabled = false;
+                this.compareButton.disabled = false;
             }
         } // end if ex not null
     } // end if len > 0
 };
 
 FITB.prototype.checkFITBStorage = function() {                //Starts chain of functions which ends with feedBack() displaying feedback to user
-    var given = document.getElementById(this.divid + "blank").value;
-    // update number of trials??
-    // log this to the db
+    var given = this.blank.value;
+
     modifiers = '';
     if (this.casei) {
         modifiers = 'i'
@@ -204,7 +274,7 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     storage_arr.push(this.correctAnswer);
     localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
 
-    feedBack('#' + this.divid + '_feedback', isCorrect, this.feedbackArray);
+    feedBack(this.feedBackDiv, isCorrect, this.feedbackArray);
     var answerInfo = 'answer:' + given + ":" + (isCorrect ? 'correct' : 'no');
     logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
     if (!this.timed) {
@@ -212,6 +282,9 @@ FITB.prototype.checkFITBStorage = function() {                //Starts chain of 
     };
 };
 
+/*==================================
+=== Functions for compare button ===
+==================================*/
 
 FITB.prototype.compareFITBAnswers = function() {       //Called by compare me button--calls compareFITB
     data = {};
@@ -253,6 +326,7 @@ FITB.prototype.compareFITB = function(data, status, whatever) {
 }
 
 FITB.prototype.checkCorrectTimedFITB = function() {
+    //Returns if the question was correct.  Used for timed assessment grading.
     return this.correct;
 };
 
@@ -742,21 +816,6 @@ MultipleChoice.prototype.feedBackTimedMC = function() {
     }
 };
 
-
-var feedBack = function (divid, correct, feedbackText) {    //Displays feedback on page--miscellaneous function that can be used by multple objects
-    if (correct) {
-        $(divid).html('You are Correct!');
-        //$(divid).css('background-color', '#C8F4AD');
-        $(divid).attr('class','alert alert-success');
-    } else {
-        if (feedbackText == null) {
-            feedbackText = '';
-        }
-        $(divid).html("Incorrect.  " + feedbackText);
-        //$(divid).css('background-color', '#F4F4AD');
-        $(divid).attr('class','alert alert-danger');
-    }
-};
 
 //BEGIN TIMED ASSESSMENT COMPONENT
 
