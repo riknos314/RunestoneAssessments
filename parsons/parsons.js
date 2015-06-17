@@ -1,5 +1,5 @@
   /*
-  Created by Isaiah Mayerchak and Kirby Olson on 6/8/15
+  Created by Isaiah Mayerchak on 6/8/15
   */
 
 
@@ -49,7 +49,7 @@ Parsons.counter = 0;
 Parsons.prototype.populateContentArray = function() {
 	var content = this.origElem.innerHTML;
 	this.contentArray = content.split("---");
-	
+
 	//remove newline characters that precede and follow the --- delimiters
 	for (var i=0; i<this.contentArray.length; i++) {
 		if (this.contentArray[i][0] == "\n") {
