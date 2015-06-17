@@ -370,6 +370,7 @@ MultipleChoice.prototype.init = function (opts) {
 
   this.answerList = [];
   this.correctList = [];
+  this.correctIndexList = [];
   this.feedbackList = [];
   this.question = null;
 
@@ -426,10 +427,13 @@ MultipleChoice.prototype.findFeedbacks = function () {
   }
 };
 
-MultipleChoice.prototype.createCorrectList = function () {   // Creates array that holds the ID's of correct answers
+MultipleChoice.prototype.createCorrectList = function () {
+  // Creates array that holds the ID's of correct answers
+  // Also populates an array that holds the indeces of correct answers
   for (var i = 0; i < this.answerList.length; i++) {
     if (this.answerList[i].correct) {
       this.correctList.push(this.answerList[i].id);
+      this.correctIndexList.push(i);
     }
   }
 };
@@ -544,11 +548,11 @@ MultipleChoice.prototype.renderMCFormButtons = function () {
   });
   if (this.multipleanswers) {
     this.submitButton.onclick = function () {
-      _this.checkMCMAStorage();
+      _this.processMCMASubmission();
     };
   } else {
     this.submitButton.onclick = function () {
-      _this.checkMCMFStorage();
+      _this.processMCMFSubmission();
     };
   } // end else
   this.optsForm.appendChild(this.submitButton);
@@ -652,84 +656,54 @@ MultipleChoice.prototype.restoreRadio = function () {
   } // end if (len > 0)
 };
 
-MultipleChoice.prototype.checkMCMAStorage = function () {
+MultipleChoice.prototype.processMCMASubmission = function () {
+  this.getSubmittedOpts();
+  this.scoreMCMASubmission();
+  this.populateMCMALocalstorage();
+  this.logMCMAsubmission();
+  this.provideMCMAFeedback();
+  this.enableMCcomparison();
+};
+
+MultipleChoice.prototype.getSubmittedOpts = function () {
   var given;
-  this.feedbackString = '';
+  this.feedbackString = "";
   this.givenArray = [];
+  this.givenlog = '';
+  var buttonObjs = this.optsForm.elements.group1;
+  for (var i = 0; i < buttonObjs.length; i++) {
+    if (buttonObjs[i].checked) {
+      given = buttonObjs[i].value;
+      this.givenArray.push(given);
+      this.feedbackString += given + ': ' + this.feedbackList[i] + "<br />";
+      this.givenlog += given + ',';
+    }
+  }
+  this.givenArray.sort();
+};
+
+MultipleChoice.prototype.scoreMCMASubmission = function () {
   this.correctCount = 0;
   var correctIndex = 0;
   var givenIndex = 0;
-  var givenlog = '';
-  var buttonObjs = this.optsForm.elements.group1;
-
-  var _this = this;
-  if (this.multipleanswers) {          // Second parameter in onclick function varies depending on this
-    var expectedArray = [];
-    for (var i = 0; i < _this.answerList.length; i++) {
-      var tempAnswerId = _this.answerList[i].id;
-      var notFound = true;
-      var j = 0;
-      while (notFound && j < _this.correctList.length) {
-        if (tempAnswerId === _this.correctList[j]) {
-          expectedArray.push(i);
-          notFound = false;
-        }
-        j++;
-      }
-    }
-    this.expectedString = expectedArray.join();
-  }
-
-  this.correctArray = this.expectedString.split(',');
-  this.correctArray.sort();
-
-  // loop through the checkboxes
-  for (var k = 0; k < buttonObjs.length; k++) {
-    if (buttonObjs[k].checked) { // if checked box
-      given = buttonObjs[k].value; // get value of this button
-      _this.givenArray.push(given);    // add it to the _this.givenArray
-      var intGiven = parseInt(given, 10) + 1;
-      _this.feedbackString += intGiven + ': ' + _this.feedbackList[k] + '<br />'; // add the feedback
-      givenlog += given + ',';
-    }
-  }
-  // sort the given array
-  this.givenArray.sort();
-
-  while (correctIndex < _this.correctArray.length &&
-    givenIndex < _this.givenArray.length) {
-    if (_this.givenArray[givenIndex] < _this.correctArray[correctIndex]) {
+  while (correctIndex < this.correctIndexList.length && givenIndex < this.givenArray.length) {
+    if (this.givenArray[givenIndex] < this.correctIndexList[correctIndex]) {
       givenIndex++;
-    } else if (_this.givenArray[givenIndex] === _this.correctArray[correctIndex]) {
+    } else if (this.givenArray[givenIndex] === this.correctIndexList[correctIndex]) {
       this.correctCount++;
       givenIndex++;
       correctIndex++;
     } else {
       correctIndex++;
     }
+  }
+};
 
-  } // end while
-
-  // save the data into local storage
+MultipleChoice.prototype.populateMCMALocalStorage = function () {
   var storage_arr = [];
   storage_arr.push(this.givenArray);
-  storage_arr.push(this.expectedArray);
-  localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
-
-  // log the answer
-  var answerInfo = 'answer:' + givenlog.substring(0, givenlog.length - 1) + ':' +
-      (_this.correctCount === _this.correctArray.length ? 'correct' : 'no');
-  logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': _this.divid});
-
-  // give the user feedback
-  if (!this.timed) {  // timed questions give feedback for each answer, not each question
-    this.feedBackMCMA();
-  } else {
-    this.feedBackTimedMC();
-  }
-  if (!this.timed) {
-    this.compareButton.disabled = false;
-  }
+  storage_arr.push(this.correctIndexList);
+  localStorage.setitem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 };
 
 MultipleChoice.prototype.feedBackMCMA = function () {
@@ -738,7 +712,7 @@ MultipleChoice.prototype.feedBackMCMA = function () {
   var answerStr = 'answers';
   if (numGiven === 1) answerStr = 'answer';
   var numCorrect = _this.correctCount;
-  var numNeeded = _this.correctArray.length;
+  var numNeeded = _this.correctList.length;
   var numGiven = _this.givenArray.length;
   var feedbackText = _this.feedbackString;
 
@@ -753,7 +727,7 @@ MultipleChoice.prototype.feedBackMCMA = function () {
   }
 };
 
-MultipleChoice.prototype.checkMCMFStorage = function () {
+MultipleChoice.prototype.processMCMFSubmission = function () {
   var given;
   var feedback = null;
   var buttonObjs = this.optsForm.elements.group1;
@@ -764,14 +738,7 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
     }
   }
 
-  for (var j = 0; j < this.answerList.length; j++) {
-    if (this.correctList[0] === this.answerList[j].id) {
-      this.correctAnswerIndex = j;
-      break;
-    }
-  }
-
-  if (given == this.correctAnswerIndex) {
+  if (given == this.correctIndexList[0]) {
     this.correct = true;
   } else if (given != null) { // if given is null then the question wasn't answered and should be counted as skipped
     this.correct = false;
@@ -780,16 +747,16 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
   // Saving data in local storage
   var storage_arr = [];
   storage_arr.push(given);
-  storage_arr.push(this.correctAnswerIndex);
+  storage_arr.push(this.correctIndexList[0]);
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 
   // log the answer
-  var answerInfo = 'answer:' + given + ':' + (given == this.correctAnswerIndex ? 'correct' : 'no');
+  var answerInfo = 'answer:' + given + ':' + (given == this.correctIndexList[0] ? 'correct' : 'no');
   logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
 
   // give the user feedback
   if (!this.timed) {
-    this.feedBackMCMF(given == this.correctAnswerIndex, feedback);
+    this.feedBackMCMF(given == this.correctIndexList[0], feedback);
   } else {
     this.feedBackTimedMC();
   }
@@ -885,7 +852,7 @@ MultipleChoice.prototype.compareAnswers = function () {
 MultipleChoice.prototype.checkCorrectTimedMCMA = function () {
   var _this = this;
 
-  if (_this.correctCount === _this.correctArray.length && _this.correctArray.length === _this.givenArray.length) {
+  if (_this.correctCount === _this.correctList.length && _this.correctList.length === _this.givenArray.length) {
     _this.correct = true;
   } else if (_this.givenArray.length !== 0) {
     _this.correct = false;
@@ -1222,10 +1189,10 @@ Timed.prototype.finishAssessment = function () {
 Timed.prototype.checkTimedStorage = function () {
   var _this = this;
   for (var i = 0; i < this.MCMAList.length; i++) {
-    _this.MCMAList[i].checkMCMAStorage();
+    _this.MCMAList[i].processMCMASubmission();
   }
   for (var j = 0; j < this.MCMFList.length; j++) {
-    _this.MCMFList[j].checkMCMFStorage();
+    _this.MCMFList[j].processMCMFSubmission();
   }
   for (var k = 0; k < this.FITBArray.length; k++) {
     _this.FITBArray[k].checkFITBStorage();
