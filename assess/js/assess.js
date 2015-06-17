@@ -706,6 +706,19 @@ MultipleChoice.prototype.populateMCMALocalStorage = function () {
   localStorage.setitem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 };
 
+MultipleChoice.prototype.logMCMAsubmission = function () {
+  var answerInfo = 'answer:' + this.givenlog.substring(0, givenlog.length -1) + ':' + (this.correctCount == this.correctList.length ? 'correct' : 'no');
+  logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
+};
+
+MultipleChoice.prototype.provideMCMAFeedback = function () {
+  if (!this.timed) {
+    this.feedBackMCMA();
+  } else {
+    this.feedBackTimedMC();
+  }
+}
+
 MultipleChoice.prototype.feedBackMCMA = function () {
   var _this = this;
   var tmpdivid = '#' + this.divid + '_feedback';
@@ -777,6 +790,12 @@ MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
     $(this.feedBackDiv).attr('class', 'alert alert-danger');
   }
 };
+
+MultipleChoice.prototype.enableMCcomparison() {
+  if (!this.timed) {
+    this.compareButton.disabled = false;
+  }
+}
 
 MultipleChoice.prototype.instructorMchoiceModal = function (data) {
   // data.reslist -- student and their answers
