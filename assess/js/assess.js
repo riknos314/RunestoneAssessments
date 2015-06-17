@@ -273,7 +273,7 @@ FITB.prototype.checkFITBStorage = function () {
   var answerInfo = 'answer:' + given + ':' + (isCorrect ? 'correct' : 'no');
   logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
   if (!this.timed) {
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    this.compareButton.disabled = false;
   }
 };
 
@@ -421,7 +421,7 @@ MultipleChoice.prototype.findFeedbacks = function () {
   var _this = this;
   for (var i = 0; i < this.children.length; i++) {
     if ($(_this.children[i]).is('[data-component=feedback]')) {
-      _this.feedbackList.push(_this.children[i].text);
+      _this.feedbackList.push(_this.children[i].innerHTML);
     }
   }
 };
@@ -468,7 +468,6 @@ MultipleChoice.prototype.renderMCForm = function () {
 
   // generate form options
   this.renderMCFormOpts();
-  console.log(this.optsForm);
 
   // If timed, don't render buttons
   if (!this.timed) {
@@ -498,19 +497,19 @@ MultipleChoice.prototype.renderMCFormOpts = function () {
 
   for (var j = 0; j < this.answerList.length; j++) {
     var k = this.indexArray[j];
-    var optid = this.divid + '_opt_' + j;
+    var optid = this.divid + '_opt_' + k;
 
     // Create the input
     var input = document.createElement('input');
     input.type = input_type;
     input.name = 'group1';
-    input.value = String(j);
+    input.value = String(k);
     input.id = optid;
 
     // Create the label for the input
     var label = document.createElement('label');
     $(label).attr('for', optid);
-    $(label).text(this.answerList[j].content);
+    $(label).text(this.answerList[k].content);
 
     // create the object to store in optionArray
     var optObj = {
@@ -597,13 +596,13 @@ MultipleChoice.prototype.randomizeAnswers = function () {
 
 MultipleChoice.prototype.restoreLocalAnswers = function () {     // Handles local storage
   if (this.multipleanswers) {
-    this.checkMultipleSelect();
+    this.restoreMultipleSelect();
   } else {
-    this.checkRadio();
+    this.restoreRadio();
   }
 };
 
-MultipleChoice.prototype.checkMultipleSelect = function () {
+MultipleChoice.prototype.restoreMultipleSelect = function () {
   // This function repopulates MCMA questions with a user's previous answers,
   // which were stored into local storage.
   var _this = this;
@@ -615,17 +614,21 @@ MultipleChoice.prototype.checkMultipleSelect = function () {
       var arr = ex.split(';');
       var answers = arr[0].split(',');
       for (var a = 0; a < answers.length; a++) {
-        var str = '#' + _this.divid + '_opt_' + answers[a];
-        $(str).attr('checked', 'true');
+        var index = answers[a];
+        for (var b = 0; b < this.optionArray.length; b++) {
+          if (this.optionArray[b].input.value == index) {
+            $(this.optionArray[b].input).attr('checked', 'true');
+          }
+        }
         if (!_this.timed) {
-          document.getElementById(_this.divid + '_bcomp').disabled = false;
+          this.compareButton.disabled = false;
         }
       } // end for
     } // end if
   } // end if len > 0
 };
 
-MultipleChoice.prototype.checkRadio = function () {
+MultipleChoice.prototype.restoreRadio = function () {
   // This function repopulates a MCMF question with a user's previous answer,
   // which was previously stored into local storage
   var _this = this;
@@ -636,10 +639,14 @@ MultipleChoice.prototype.checkRadio = function () {
     var ex = localStorage.getItem(eBookConfig.email + ':' + _this.divid);
     if (ex !== null) {
       var arr = ex.split(';');
-      var str = '#' + _this.divid + '_opt_' + arr[0];
-      $(str).attr('checked', 'true');
+      var index = arr[0];
+      for (var b = 0; b < this.optionArray.length; b++) {
+        if (this.optionArray[b].input.value == index) {
+          $(this.optionArray[b].input).attr('checked', 'true');
+        }
+      }
       if (!_this.timed) {
-        document.getElementById(_this.divid + '_bcomp').disabled = false;
+        this.compareButton.disabled = false;
       }
     } // end if not null
   } // end if (len > 0)
@@ -648,35 +655,53 @@ MultipleChoice.prototype.checkRadio = function () {
 MultipleChoice.prototype.checkMCMAStorage = function () {
   var given;
   this.feedbackString = '';
-  this.correctArray = this.expectedString.split(',');
-  this.correctArray.sort();
   this.givenArray = [];
   this.correctCount = 0;
   var correctIndex = 0;
   var givenIndex = 0;
   var givenlog = '';
-  var buttonObjs = document.forms[this.divid + '_form'].elements.group1;
+  var buttonObjs = this.optsForm.elements.group1;
+
+  var _this = this;
+  if (this.multipleanswers) {          // Second parameter in onclick function varies depending on this
+    var expectedArray = [];
+    for (var i = 0; i < _this.answerList.length; i++) {
+      var tempAnswerId = _this.answerList[i].id;
+      var notFound = true;
+      var j = 0;
+      while (notFound && j < _this.correctList.length) {
+        if (tempAnswerId === _this.correctList[j]) {
+          expectedArray.push(i);
+          notFound = false;
+        }
+        j++;
+      }
+    }
+    this.expectedString = expectedArray.join();
+  }
+
+  this.correctArray = this.expectedString.split(',');
+  this.correctArray.sort();
 
   // loop through the checkboxes
-  var _this = this;
-  for (var i = 0; i < buttonObjs.length; i++) {
-    if (buttonObjs[i].checked) { // if checked box
-      given = buttonObjs[i].value; // get value of this button
+  for (var k = 0; k < buttonObjs.length; k++) {
+    if (buttonObjs[k].checked) { // if checked box
+      given = buttonObjs[k].value; // get value of this button
       _this.givenArray.push(given);    // add it to the _this.givenArray
-      var intGiven = parseInt(given) + 1;
-      _this.feedbackString += intGiven + ': ' + _this.feedbackList[i] + '<br />'; // add the feedback
+      var intGiven = parseInt(given, 10) + 1;
+      _this.feedbackString += intGiven + ': ' + _this.feedbackList[k] + '<br />'; // add the feedback
       givenlog += given + ',';
     }
   }
   // sort the given array
-  _this.givenArray.sort();
+  this.givenArray.sort();
 
   while (correctIndex < _this.correctArray.length &&
     givenIndex < _this.givenArray.length) {
     if (_this.givenArray[givenIndex] < _this.correctArray[correctIndex]) {
       givenIndex++;
     } else if (_this.givenArray[givenIndex] === _this.correctArray[correctIndex]) {
-      _this.correctCount++;
+      this.correctCount++;
       givenIndex++;
       correctIndex++;
     } else {
@@ -687,7 +712,7 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
 
   // save the data into local storage
   var storage_arr = [];
-  storage_arr.push(_this.givenArray);
+  storage_arr.push(this.givenArray);
   storage_arr.push(this.expectedArray);
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 
@@ -703,7 +728,7 @@ MultipleChoice.prototype.checkMCMAStorage = function () {
     this.feedBackTimedMC();
   }
   if (!this.timed) {
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    this.compareButton.disabled = false;
   }
 };
 
@@ -731,7 +756,7 @@ MultipleChoice.prototype.feedBackMCMA = function () {
 MultipleChoice.prototype.checkMCMFStorage = function () {
   var given;
   var feedback = null;
-  var buttonObjs = document.forms[this.divid + '_form'].elements.group1;
+  var buttonObjs = this.optsForm.elements.group1;
   for (var i = buttonObjs.length - 1; i >= 0; i--) {
     if (buttonObjs[i].checked) {
       given = buttonObjs[i].value;
@@ -739,11 +764,19 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
     }
   }
 
-  if (given === this.correctAnswerIndex) {
+  for (var j = 0; j < this.answerList.length; j++) {
+    if (this.correctList[0] === this.answerList[j].id) {
+      this.correctAnswerIndex = j;
+      break;
+    }
+  }
+
+  if (given == this.correctAnswerIndex) {
     this.correct = true;
   } else if (given != null) { // if given is null then the question wasn't answered and should be counted as skipped
     this.correct = false;
   }
+
   // Saving data in local storage
   var storage_arr = [];
   storage_arr.push(given);
@@ -751,33 +784,103 @@ MultipleChoice.prototype.checkMCMFStorage = function () {
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 
   // log the answer
-  var answerInfo = 'answer:' + given + ':' + (given === this.correctAnswerIndex ? 'correct' : 'no');
+  var answerInfo = 'answer:' + given + ':' + (given == this.correctAnswerIndex ? 'correct' : 'no');
   logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
 
   // give the user feedback
   if (!this.timed) {
-    this.feedBackMCMF(given === this.correctAnswerIndex, feedback);
+    this.feedBackMCMF(given == this.correctAnswerIndex, feedback);
   } else {
     this.feedBackTimedMC();
   }
   if (!this.timed) {
-    document.getElementById(this.divid + '_bcomp').disabled = false;
+    this.compareButton.disabled = false;
   }
 };
 
 MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
-  var tmpdivid = '#' + this.divid + '_feedback';
   if (correct) {
-    $(tmpdivid).html('Correct!  ' + feedbackText);
-    $(tmpdivid).attr('class', 'alert alert-success');
+    $(this.feedBackDiv).html('Correct!  ' + feedbackText);
+    $(this.feedBackDiv).attr('class', 'alert alert-success');
   } else {
     if (feedbackText == null) {
       feedbackText = '';
     }
-    $(tmpdivid).html('Incorrect.  ' + feedbackText);
-    $(tmpdivid).attr('class', 'alert alert-danger');
+    $(this.feedBackDiv).html('Incorrect.  ' + feedbackText);
+    $(this.feedBackDiv).attr('class', 'alert alert-danger');
   }
 };
+
+MultipleChoice.prototype.instructorMchoiceModal = function (data) {
+  // data.reslist -- student and their answers
+  // data.answerDict  -- answers and count
+  // data.correct - correct answer
+  var res = '<table><tr><th>Student</th><th>Answer(s)</th></tr>';
+  for (var i in data) {
+    res += '<tr><td>' + data[i][0] + '</td><td>' + data[i][1] + '</td></tr>';
+  }
+  res += '</table>';
+  return res;
+}
+
+MultipleChoice.prototype.compareModal = function (data, status, whatever) {
+  var datadict = eval(data)[0];
+  var answers = datadict.answerDict;
+  var misc = datadict.misc;
+  var kl = Object.keys(answers).sort();
+
+  var body = '<table>';
+  body += '<tr><th>Answer</th><th>Percent</th></tr>';
+
+  var theClass = '';
+  for (var k in kl) {
+    if (kl[k] === misc.correct) {
+      theClass = 'success';
+    } else {
+      theClass = 'info';
+    }
+
+    body += '<tr><td>' + kl[k] + '</td><td class="compare-me-progress">';
+    var pct = answers[kl[k]] + '%';
+    body += '<div class="progress">';
+    body += '  <div class="progress-bar progress-bar-' + theClass + '" style="width:' + pct + ';">' + pct;
+    body += '  </div>';
+    body += '</div></td></tr>';
+  }
+  body += '</table>';
+
+  if (misc['yourpct'] !== 'unavailable') {
+    body += '<br /><p>You have ' + misc['yourpct'] + '% correct for all questions</p>';
+  }
+
+  if (datadict.reslist !== undefined) {
+    body += this.instructorMchoiceModal(datadict.reslist);
+  }
+
+  var html = '<div class="modal fade">' +
+    '  <div class="modal-dialog compare-modal">' +
+    '    <div class="modal-content">' +
+    '      <div class="modal-header">' +
+    '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+    '        <h4 class="modal-title">Distribution of Answers</h4>' +
+    '      </div>' +
+    '      <div class="modal-body">' +
+    body +
+    '      </div>' +
+    '    </div>' +
+    '  </div>' +
+    '</div>';
+
+  var el = $(html);
+  el.modal();
+};
+
+MultipleChoice.prototype.compareAnswers = function () {
+  var data = {};
+  data.div_id = this.divid;
+  data.course = eBookConfig.course;
+  jQuery.get(eBookConfig.ajaxURL + 'getaggregateresults', data, this.compareModal);
+}
 
 MultipleChoice.prototype.checkCorrectTimedMCMA = function () {
   var _this = this;
@@ -827,7 +930,7 @@ Timed.prototype.init = function (opts) {
   this.origElem = orig; // the entire element of this timed assessment and all it's children
   this.divid = orig.id;
   this.children = this.origElem.childNodes;
-  this.timeLimit = parseInt($(this.origElem).data('time')); // time in seconds to complete the exam
+  this.timeLimit = parseInt($(this.origElem).data('time'), 10); // time in seconds to complete the exam
   this.running = 0;
   this.paused = 0;
   this.done = 0;
