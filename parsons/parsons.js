@@ -31,20 +31,24 @@ Parsons.prototype.init = function (opts) {
   var orig = opts.orig;  //  entire <ul> element
   this.origElem = orig;
   this.divid = orig.id;
+  this.children = this.origElem.childNodes; //this contains all of the child elements of the entire tag...
   this.contentArray = [];
-  this.question = '';
+  this.question = null;
 
   Parsons.counter++;      //  Unique identifier
 
-  this.populateContentArray();
   this.getQuestion();
+  this.populateContentArray();
   this.createParsonsView();
 };
 
-Parsons.counter = 0;
+Parsons.counter = 0;   // Initialize counter
 
 Parsons.prototype.populateContentArray = function () {
-  var content = this.origElem.innerHTML;
+  var fulltext = $(this.origElem).html();
+  var delimiter = this.question.outerHTML;
+  var temp = fulltext.split(delimiter);
+  var content = temp[1];
   this.contentArray = content.split('---');
 
   // remove newline characters that precede and follow the --- delimiters
@@ -59,8 +63,14 @@ Parsons.prototype.populateContentArray = function () {
 };
 
 Parsons.prototype.getQuestion = function () {    // Finds question text and stores it in this.question
-	// pass--depends on future model changes
+  for (var i=0; i< this.children.length; i++){
+    if ($(this.children[i]).is("[data-question]")) {
+      this.question = this.children[i];
+      break;
+    }
+  }
 };
+
 Parsons.prototype.createParsonsView = function () {     // Create DOM elements
   var containingDiv = document.createElement('div');
   $(containingDiv).addClass('parsons alert alert-warning');
@@ -68,7 +78,7 @@ Parsons.prototype.createParsonsView = function () {     // Create DOM elements
 
   var parsTextDiv = document.createElement('div');
   $(parsTextDiv).addClass('parsons-text');
-  parsTextDiv.innerHTML = 'Sample hardcoded question';
+  parsTextDiv.innerHTML = this.question.innerHTML;
   containingDiv.appendChild(parsTextDiv);
 
   var leftClearDiv = document.createElement('div');
