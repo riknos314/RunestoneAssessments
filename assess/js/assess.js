@@ -575,6 +575,7 @@ MultipleChoice.prototype.renderMCFormButtons = function () {
 MultipleChoice.prototype.renderMCfeedbackDiv = function () {
   this.feedBackDiv = document.createElement('div');
   this.feedBackDiv.id = this.divid + '_feedback';
+  this.MCContainer.appendChild(document.createElement('br'));
   this.MCContainer.appendChild(this.feedBackDiv);
 };
 
@@ -778,13 +779,13 @@ MultipleChoice.prototype.logMCMFsubmission = function () {
 
 MultipleChoice.prototype.provideMCMFFeedback = function () {
   if (!this.timed) {
-    this.feedBackMCMF(this.givenArray[0] == this.correctIndexList[0], this.singlefeedback);
+    this.renderMCMFFeedback(this.givenArray[0] == this.correctIndexList[0], this.singlefeedback);
   } else {
     this.feedBackTimedMC();
   }
 }
 
-MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
+MultipleChoice.prototype.renderMCMFFeedback = function (correct, feedbackText) {
   if (correct) {
     $(this.feedBackDiv).html('Correct!  ' + feedbackText);
     $(this.feedBackDiv).attr('class', 'alert alert-success');
@@ -872,17 +873,15 @@ MultipleChoice.prototype.compareAnswers = function () {
   data.div_id = this.divid;
   data.course = eBookConfig.course;
   jQuery.get(eBookConfig.ajaxURL + 'getaggregateresults', data, this.compareModal);
-}
+};
 
 MultipleChoice.prototype.checkCorrectTimedMCMA = function () {
-  var _this = this;
-
-  if (_this.correctCount === _this.correctList.length && _this.correctList.length === _this.givenArray.length) {
-    _this.correct = true;
-  } else if (_this.givenArray.length !== 0) {
-    _this.correct = false;
+  if (this.correctCount === this.correctList.length && this.correctList.length === this.givenArray.length) {
+    this.correct = true;
+  } else if (this.givenArray.length !== 0) {
+    this.correct = false;
   }
-  return _this.correct;
+  return this.correct;
 };
 
 MultipleChoice.prototype.checkCorrectTimedMCMF = function () {
@@ -903,7 +902,9 @@ MultipleChoice.prototype.feedBackTimedMC = function () {
   }
 };
 
-// BEGIN TIMED ASSESSMENT COMPONENT
+/*=================================
+=== Begin Timed Assessment Code ===
+=================================*/
 
 var TimedList = {};  // Timed dictionary
 
