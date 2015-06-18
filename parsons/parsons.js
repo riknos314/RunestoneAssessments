@@ -1,7 +1,7 @@
   /*
   Created by Isaiah Mayerchak on 6/8/15
   */
-
+  var _p = _.noConflict();
 // start with basic parent stuff
 function RunestoneBase () {
 
@@ -120,7 +120,106 @@ Parsons.prototype.createParsonsView = function () {     // Create DOM elements
   parsonsControlDiv.appendChild(messageDiv);
 
   $(this.origElem).replaceWith(containingDiv);
+
+  this.newJS();
 };
+
+Parsons.prototype.newJS = function () {
+  var _self = this;
+  $(document).ready(function(){
+            $("#parsons-" + Parsons.counter).not(".sortable-code").not(".parsons-controls").on("click", function(){
+                 $('html, body').animate({
+                    scrollTop: ($("#parsons-" + Parsons.counter).offset().top - 50)
+                }, 700);
+            }).find(".sortable-code, .parsons-controls").click(function(e) {
+                return false;
+                });
+            var msgBox = $("#parsons-message-" + Parsons.counter);
+            msgBox.hide();
+        var displayErrors = function (fb) {
+            if(fb.errors.length > 0) {
+                    var hash = _self.pwidget.getHash("#ul-parsons-sortableCode-" + Parsons.counter);
+                    msgBox.fadeIn(500);
+                    msgBox.attr('class','alert alert-danger');
+                    msgBox.html(fb.errors[0]);
+                    logBookEvent({'event':'parsons', 'act':hash, 'div_id': _self.divid});
+            } else {
+                    logBookEvent({'event':'parsons', 'act':'yes', 'div_id': _self.divid});
+                    msgBox.fadeIn(100);
+                    msgBox.attr('class','alert alert-success');
+                    msgBox.html("Perfect!")
+                }
+        }
+        $(window).load(function() {
+            // set min width and height
+            var sortableul = $("#ul-parsons-sortableCode-" + Parsons.counter);
+            var trashul = $("#ul-parsons-sortableTrash-" + Parsons.counter);
+            var sortableHeight = sortableul.height();
+            var sortableWidth = sortableul.width();
+            var trashWidth = trashul.width();
+            var trashHeight = trashul.height();
+            var minHeight = Math.max(trashHeight,sortableHeight);
+            var minWidth = Math.max(trashWidth, sortableWidth);
+            trashul.css("min-height",minHeight + "px");
+            sortableul.css("min-height",minHeight + "px");
+            sortableul.height(minHeight);
+            trashul.css("min-width",minWidth + "px");
+            sortableul.css("min-width",minWidth + "px");
+        });
+        _self.pwidget = new ParsonsWidget({
+                'sortableId': 'parsons-sortableCode-' + Parsons.counter,
+        'trashId': 'parsons-sortableTrash-' + Parsons.counter,
+                'max_wrong_lines': 1,
+                'solution_label': 'Drop blocks here',
+                'feedback_cb' : displayErrors
+        });
+        _self.pwidget.init($("#parsons-orig-" + Parsons.counter).text());
+    _self.pwidget.shuffleLines();
+
+        if(localStorage.getItem(_self.divid) && localStorage.getItem(_self.divid + '-trash')) {
+            try {
+                var solution = localStorage.getItem(_self.divid);
+                var trash = localStorage.getItem(_self.divid + '-trash');
+                _self.pwidget.createHTMLFromHashes(solution,trash);
+                _self.pwidget.getFeedback();
+            } catch(err) {
+                var text = "An error occured restoring old " + _self.divid + " state.  Error: ";
+                console.log(text + err.message);
+            }
+        }
+            $("#reset" + Parsons.counter).click(function(event){
+              event.preventDefault();
+              _self.pwidget.shuffleLines();
+
+            // set min width and height
+            var sortableul = $("#ul-parsons-sortableCode-" + Parsons.counter);
+            var trashul = $("#ul-parsons-sortableTrash-" + Parsons.counter);
+            var sortableHeight = sortableul.height();
+            var sortableWidth = sortableul.width();
+            var trashWidth = trashul.width();
+            var trashHeight = trashul.height();
+            var minHeight = Math.max(trashHeight,sortableHeight);
+            var minWidth = Math.max(trashWidth, sortableWidth);
+            trashul.css("min-height",minHeight + "px");
+            sortableul.css("min-height",minHeight + "px");
+            trashul.css("min-width",minWidth + "px");
+            sortableul.css("min-width",minWidth + "px");
+              msgBox.hide();
+            });
+            $("#checkMe" + Parsons.counter).click(function(event){
+              event.preventDefault();
+              var hash = _self.pwidget.getHash("#ul-parsons-sortableCode-" + Parsons.counter);
+              localStorage.setItem(_self.divid,hash);
+              hash = _self.pwidget.getHash("#ul-parsons-sortableTrash-" + Parsons.counter);
+              localStorage.setItem(_self.divid + '-trash',hash);
+
+            _self.pwidget.getFeedback();
+            msgBox.fadeIn(100);
+
+            });
+
+        });
+}
 
 $(document).ready(function () {
   $('[data-component=parsons]').each(function (index) {
