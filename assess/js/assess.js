@@ -596,7 +596,9 @@ MultipleChoice.prototype.randomizeAnswers = function () {
   }
 };
 
-
+/*====================================
+=== Repopulation from localstorage ===
+====================================*/
 
 MultipleChoice.prototype.restoreLocalAnswers = function () {     // Handles local storage
   if (this.multipleanswers) {
@@ -656,10 +658,15 @@ MultipleChoice.prototype.restoreRadio = function () {
   } // end if (len > 0)
 };
 
+/*===============================
+=== Processing MC Submissions ===
+===============================*/
+
 MultipleChoice.prototype.processMCMASubmission = function () {
+  // Called when the submit button is clicked
   this.getSubmittedOpts();
   this.scoreMCMASubmission();
-  this.populateMCMALocalstorage();
+  this.populateMCMALocalStorage();
   this.logMCMAsubmission();
   this.provideMCMAFeedback();
   this.enableMCcomparison();
@@ -667,7 +674,8 @@ MultipleChoice.prototype.processMCMASubmission = function () {
 
 MultipleChoice.prototype.getSubmittedOpts = function () {
   var given;
-  this.feedbackString = "";
+  this.singlefeedback = ''; // Used for MCMF questions
+  this.feedbackString = ''; // Used for MCMA questions
   this.givenArray = [];
   this.givenlog = '';
   var buttonObjs = this.optsForm.elements.group1;
@@ -675,8 +683,9 @@ MultipleChoice.prototype.getSubmittedOpts = function () {
     if (buttonObjs[i].checked) {
       given = buttonObjs[i].value;
       this.givenArray.push(given);
-      this.feedbackString += given + ': ' + this.feedbackList[i] + "<br />";
+      this.feedbackString += given + ': ' + this.feedbackList[i] + '<br />';
       this.givenlog += given + ',';
+      this.singlefeedback = this.feedbackList[i];
     }
   }
   this.givenArray.sort();
@@ -713,70 +722,67 @@ MultipleChoice.prototype.logMCMAsubmission = function () {
 
 MultipleChoice.prototype.provideMCMAFeedback = function () {
   if (!this.timed) {
-    this.feedBackMCMA();
+    this.renderMCMAFeedBack();
   } else {
     this.feedBackTimedMC();
   }
-}
+};
 
-MultipleChoice.prototype.feedBackMCMA = function () {
-  var _this = this;
-  var tmpdivid = '#' + this.divid + '_feedback';
+MultipleChoice.prototype.renderMCMAFeedBack = function () {
   var answerStr = 'answers';
   if (numGiven === 1) answerStr = 'answer';
-  var numCorrect = _this.correctCount;
-  var numNeeded = _this.correctList.length;
-  var numGiven = _this.givenArray.length;
-  var feedbackText = _this.feedbackString;
+  var numCorrect = this.correctCount;
+  var numNeeded = this.correctList.length;
+  var numGiven = this.givenArray.length;
+  var feedbackText = this.feedbackString;
 
   if (numCorrect === numNeeded && numNeeded === numGiven) {
-    $(tmpdivid).html('Correct!  <br />' + feedbackText);
-    $(tmpdivid).attr('class', 'alert alert-success');
+    $(this.feedBackDiv).html('Correct!  <br />' + feedbackText);
+    $(this.feedBackDiv).attr('class', 'alert alert-success');
   } else {
-    $(tmpdivid).html('Incorrect.  ' + 'You gave ' + numGiven +
+    $(this.feedBackDiv).html('Incorrect.  ' + 'You gave ' + numGiven +
       ' ' + answerStr + ' and got ' + numCorrect + ' correct of ' +
       numNeeded + ' needed.<br /> ' + feedbackText);
-    $(tmpdivid).attr('class', 'alert alert-danger');
+    $(this.feedBackDiv).attr('class', 'alert alert-danger');
   }
 };
 
 MultipleChoice.prototype.processMCMFSubmission = function () {
-  var given;
-  var feedback = null;
-  var buttonObjs = this.optsForm.elements.group1;
-  for (var i = buttonObjs.length - 1; i >= 0; i--) {
-    if (buttonObjs[i].checked) {
-      given = buttonObjs[i].value;
-      feedback = this.feedbackList[i];
-    }
-  }
+  // Called when the submit button is clicked
+  this.getSubmittedOpts();
+  this.populateMCMFLocalStorage();
+  this.logMCMFsubmission();
+  this.provideMCMFFeedback();
+  this.enableMCcomparison();
+};
 
-  if (given == this.correctIndexList[0]) {
+MultipleChoice.prototype.scoreMCMFSubmission = function () {
+  if (this.givenArray[0] == this.correctIndexList[0]) {
     this.correct = true;
-  } else if (given != null) { // if given is null then the question wasn't answered and should be counted as skipped
+  } else if (this.givenArray[0] != null) { // if given is null then the question wasn't answered and should be counted as skipped
     this.correct = false;
   }
+};
 
-  // Saving data in local storage
+MultipleChoice.prototype.populateMCMFLocalStorage = function () {
   var storage_arr = [];
-  storage_arr.push(given);
+  storage_arr.push(this.givenArray[0]);
   storage_arr.push(this.correctIndexList[0]);
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
+};
 
-  // log the answer
-  var answerInfo = 'answer:' + given + ':' + (given == this.correctIndexList[0] ? 'correct' : 'no');
+MultipleChoice.prototype.logMCMFsubmission = function () {
+  var answerInfo = 'answer:' + this.givenArray[0] + ':' + (this.givenArray[0] == this.correctIndexList[0] ? 'correct' : 'no');
   logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
+};
 
-  // give the user feedback
+MultipleChoice.prototype.provideMCMFFeedback = function () {
   if (!this.timed) {
-    this.feedBackMCMF(given == this.correctIndexList[0], feedback);
+    this.feedBackMCMF(this.givenArray[0] == this.correctIndexList[0], this.singlefeedback);
   } else {
     this.feedBackTimedMC();
   }
-  if (!this.timed) {
-    this.compareButton.disabled = false;
-  }
-};
+}
 
 MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
   if (correct) {
@@ -791,11 +797,11 @@ MultipleChoice.prototype.feedBackMCMF = function (correct, feedbackText) {
   }
 };
 
-MultipleChoice.prototype.enableMCcomparison() {
+MultipleChoice.prototype.enableMCcomparison = function () {
   if (!this.timed) {
     this.compareButton.disabled = false;
   }
-}
+};
 
 MultipleChoice.prototype.instructorMchoiceModal = function (data) {
   // data.reslist -- student and their answers
@@ -807,7 +813,7 @@ MultipleChoice.prototype.instructorMchoiceModal = function (data) {
   }
   res += '</table>';
   return res;
-}
+};
 
 MultipleChoice.prototype.compareModal = function (data, status, whatever) {
   var datadict = eval(data)[0];
