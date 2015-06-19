@@ -44,7 +44,7 @@ def setup(app):
 
 TEMPLATE = '''
     <pre data-component="parsons" id="%(divid)s">
-        <span data-question>%(instructions)s</span>%(code)s</pre>
+        <span data-question>%(qnumber)s: %(instructions)s</span>%(code)s</pre>
     '''
 
 class ParsonsNode(nodes.General, nodes.Element):
