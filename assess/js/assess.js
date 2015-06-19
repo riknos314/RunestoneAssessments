@@ -32,6 +32,7 @@ RunestoneBase.prototype.logRunEvent = function (info) {
 
 var feedBack = function (elem, correct, feedbackText) {    // Displays feedback on page--miscellaneous function that can be used by multple objects
     // elem is the Element in which to put the feedback
+  console.log(elem);
   if (correct) {
     $(elem).html('You are Correct!');
     $(elem).attr('class', 'alert alert-success');
@@ -268,7 +269,6 @@ FITB.prototype.checkFITBStorage = function () {
   storage_arr.push(given);
   storage_arr.push(this.correctAnswer);
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
-
   feedBack(this.feedBackDiv, isCorrect, this.feedbackArray);
   var answerInfo = 'answer:' + given + ':' + (isCorrect ? 'correct' : 'no');
   logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
@@ -331,6 +331,7 @@ FITB.prototype.checkCorrectTimedFITB = function () {
 =========================================
 =======================================*/
 
+MultipleChoice.prototype = new RunestoneBase();
 var mcList = {};  // Multiple Choice dictionary
 
 // constructor
@@ -530,7 +531,7 @@ MultipleChoice.prototype.renderMCFormOpts = function () {
     // if timed, add a feedback Div for the option
     if (this.timed) {
       var feedBackEach = document.createElement('div');
-      feedBackEach.id = this.divid + 'eachFeedback_' + k;
+      feedBackEach.id = this.divid + '_eachFeedback_' + k;
       this.optsForm.appendChild(feedBackEach);
     }
   }
@@ -713,11 +714,11 @@ MultipleChoice.prototype.populateMCMALocalStorage = function () {
   var storage_arr = [];
   storage_arr.push(this.givenArray);
   storage_arr.push(this.correctIndexList);
-  localStorage.setitem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
+  localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
 };
 
 MultipleChoice.prototype.logMCMAsubmission = function () {
-  var answerInfo = 'answer:' + this.givenlog.substring(0, givenlog.length -1) + ':' + (this.correctCount == this.correctList.length ? 'correct' : 'no');
+  var answerInfo = 'answer:' + this.givenlog.substring(0, this.givenlog.length - 1) + ':' + (this.correctCount == this.correctList.length ? 'correct' : 'no');
   logBookEvent({'event': 'mChoice', 'act': answerInfo, 'div_id': this.divid});
 };
 
@@ -902,9 +903,11 @@ MultipleChoice.prototype.feedBackTimedMC = function () {
   }
 };
 
-/*=================================
-=== Begin Timed Assessment Code ===
-=================================*/
+/*===================================
+=====================================
+==== Begin Timed Assessment Code ====
+=====================================
+===================================*/
 
 var TimedList = {};  // Timed dictionary
 
@@ -916,6 +919,10 @@ function Timed (opts) {
     this.init(opts);
   }
 }
+
+/*====================================
+=== Setting Timed Assess Variables ===
+====================================*/
 
 Timed.prototype.init = function (opts) {
   RunestoneBase.apply(this, arguments);
@@ -936,80 +943,103 @@ Timed.prototype.init = function (opts) {
   this.MCMAList = []; // list of MCMA problems
   this.FITBArray = [];  // list of FIB problems
 
-  this.renderTimedAssessFramework();
+  this.renderTimedAssess();
   this.renderMCMFquestions();
   this.renderMCMAquestions();
   this.renderFIBquestions();
 
 };
 
-Timed.prototype.renderTimedAssessFramework = function () {
-  var _this = this;
-  var timedDiv = document.createElement('div'); // div that will hold the questions for the timed assessment
+/*===============================
+=== Generating new Timed HTML ===
+===============================*/
+
+Timed.prototype.renderTimedAssess = function () {
+  this.renderContainer();
+  this.renderTimer();
+  this.renderControlButtons();
+  this.assessDiv.appendChild(this.timedDiv);  // This can't be appended in renderContainer because then it renders above the timer and control buttons.
+  this.renderMCMFquestions();
+  this.renderFIBquestions();
+  this.renderSubmitButton();
+  this.renderFeedbackContainer();
+
+  // Replace intermediate HTML with rendered HTML
+  $(this.origElem).replaceWith(this.assessDiv);
+};
+
+Timed.prototype.renderContainer = function () {
+  this.assessDiv = document.createElement('div'); // container for the entire Timed Component
+  this.assessDiv.id = this.divid;
+  this.timedDiv = document.createElement('div'); // div that will hold the questions for the timed assessment
   var elementHtml = $(this.origElem).html(); // take all of the tags that will generate the questions
-  $(timedDiv).html(elementHtml); // place those tags in the div
-  $(timedDiv).attr({ // set the id, and style the div to be hidden
+  $(this.timedDiv).html(elementHtml); // place those tags in the div
+  $(this.timedDiv).attr({ // set the id, and style the div to be hidden
     'id': 'timed_Test',
     'style': 'display:none'
   });
+};
 
-  var assessDiv = document.createElement('div');
-  assessDiv.id = this.divid;
-  var wrapperDiv = document.createElement('div');
-  var timerContainer = document.createElement('P');
-  wrapperDiv.id = 'startWrapper';
-  timerContainer.id = 'output';
-  wrapperDiv.appendChild(timerContainer);
-  var controlDiv = document.createElement('div');
-  $(controlDiv).attr({
+Timed.prototype.renderTimer = function () {
+  this.wrapperDiv = document.createElement('div');
+  this.timerContainer = document.createElement('P');
+  this.wrapperDiv.id = 'startWrapper';
+  this.timerContainer.id = 'output';
+  this.wrapperDiv.appendChild(this.timerContainer);
+};
+
+Timed.prototype.renderControlButtons = function () {
+  var _this = this
+  this.controlDiv = document.createElement('div');
+  $(this.controlDiv).attr({
     'id': 'controls',
     'style': 'text-align: center'
   });
-  var startBtn = document.createElement('btn');
-  var pauseBtn = document.createElement('btn');
-  $(startBtn).attr({
+  this.startBtn = document.createElement('btn');
+  this.pauseBtn = document.createElement('btn');
+  $(this.startBtn).attr({
     'class': 'btn btn-default',
     'id': 'start'
   });
-  startBtn.textContent = 'Start';
-  startBtn.onclick = function () {
+  this.startBtn.textContent = 'Start';
+  this.startBtn.onclick = function () {
     _this.startAssessment();
   };
-  $(pauseBtn).attr({
+  $(this.pauseBtn).attr({
     'class': 'btn btn-default',
     'id': 'pause'
   });
-  pauseBtn.textContent = 'Pause';
-  pauseBtn.onclick = function () {
+  this.pauseBtn.textContent = 'Pause';
+  this.pauseBtn.onclick = function () {
     _this.pauseAssessment();
   };
-  controlDiv.appendChild(startBtn);
-  controlDiv.appendChild(pauseBtn);
-  assessDiv.appendChild(wrapperDiv);
-  assessDiv.appendChild(controlDiv);
+  this.controlDiv.appendChild(this.startBtn);
+  this.controlDiv.appendChild(this.pauseBtn);
+  this.assessDiv.appendChild(this.wrapperDiv);
+  this.assessDiv.appendChild(this.controlDiv);
+};
 
-  // rendering objects that come after the questions
-  var buttonContainer = document.createElement('div');
-  $(buttonContainer).attr({'style': 'text-align:center'});
-  var finishButton = document.createElement('button');
-  $(finishButton).attr({
+Timed.prototype.renderSubmitButton = function () {
+  var _this = this;
+  this.buttonContainer = document.createElement('div');
+  $(this.buttonContainer).attr({'style': 'text-align:center'});
+  this.finishButton = document.createElement('button');
+  $(this.finishButton).attr({
       'id': 'finish',
       'class': 'btn btn-inverse'
   });
-  finishButton.textContent = 'Submit answers';
-  finishButton.onclick = function () {
+  this.finishButton.textContent = 'Submit answers';
+  this.finishButton.onclick = function () {
     _this.finishAssessment();
   };
-  buttonContainer.appendChild(finishButton);
-  var score = document.createElement('P');
-  score.id = 'results';
+  this.buttonContainer.appendChild(this.finishButton);
+  this.timedDiv.appendChild(this.buttonContainer);
+};
 
-  timedDiv.appendChild(buttonContainer);
-  timedDiv.appendChild(score);
-
-  assessDiv.appendChild(timedDiv);
-  $(this.origElem).replaceWith(assessDiv);
-
+Timed.prototype.renderFeedbackContainer = function () {
+  this.score = document.createElement('P');
+  this.score.id = this.divid + 'results';
+  this.timedDiv.appendChild(this.score);
 };
 
 Timed.prototype.renderMCMFquestions = function () {
@@ -1054,28 +1084,32 @@ Timed.prototype.renderFIBquestions = function () {
   }
 };
 
+/*=================================
+=== Timer and control Functions ===
+=================================*/
+
 Timed.prototype.startAssessment = function () {
   var _this = this;
-  _this.tookTimedExam();
+  this.tookTimedExam();
   if (!_this.taken) {
-    $('#start').attr('disabled', true);
+    $(this.startBtn).attr('disabled', true);
     if (_this.running === 0 && _this.paused === 0) {
       _this.running = 1;
-      $('#timed_Test').show();
+      $(this.timedDiv).show();
       _this.increment();
       var name = _this.getPageName();
       logBookEvent({'event': 'timedExam', 'act': 'start', 'div_id': name});
       localStorage.setItem(eBookConfig.email + ':timedExam:' + name, 'started');
     }
   } else {
-    $('#start').attr('disabled', true);
-    $('#pause').attr('disabled', true);
-    $('#finish').attr('disabled', true);
+    $(this.startBtn).attr('disabled', true);
+    $(this.pauseBtn).attr('disabled', true);
+    $(this.finishButton).attr('disabled', true);
     _this.running = 0;
     _this.done = 1;
-    $('#timed_Test').show();
-    $('#output').text('Already completed');
-    _this.checkTimedStorage();
+    $(this.timedDiv).show();
+    $(this.time).text('Already completed');
+    _this.submitTimedProblems();
   }
 };
 
@@ -1084,19 +1118,19 @@ Timed.prototype.pauseAssessment = function () {
     if (this.running === 1) {
       this.running = 0;
       this.paused = 1;
-      document.getElementById('pause').innerHTML = 'Resume';
-      $('#timed_Test').hide();
+      this.pauseBtn.innerHTML = 'Resume';
+      $(this.timedDiv).hide();
     } else {
       this.running = 1;
       this.paused = 0;
       this.increment();
-      document.getElementById('pause').innerHTML = 'Pause';
-      $('#timed_Test').show();
+      this.pauseBtn.innerHTML = 'Pause';
+      $(this.timedDiv).show();
     }
   }
 };
 
-Timed.prototype.showTime = function () {
+Timed.prototype.showTime = function () { // displays the timer value
   var mins = Math.floor(this.timeLimit / 60);
   var secs = Math.floor(this.timeLimit) % 60;
   var minsString = mins;
@@ -1114,31 +1148,31 @@ Timed.prototype.showTime = function () {
     timeString = 'Finished';
   }
 
-  document.getElementById('output').innerHTML = timeString;
+  this.timerContainer.innerHTML = timeString;
   var timeTips = document.getElementsByClassName('timeTip');
   for (var i = 0; i <= timeTips.length - 1; i++) {
     timeTips[i].title = timeString;
   }
 };
 
-Timed.prototype.increment = function () {
+Timed.prototype.increment = function () { // increments the timer
   // if running (not paused) and not taken
-  if (this.running === 1 & !this.taken) {
+  if (this.running === 1 && !this.taken) {
     var _this = this;
     setTimeout(function () {
       _this.timeLimit--;
       _this.showTime(_this.timeLimit);
-      if (_this.timeLimi > 0) {
+      if (_this.timeLimit > 0) {
         _this.increment();
         // ran out of time
       } else {
-        $('#pause').attr({'disabled': 'true'});
-        $('#finish').attr({'disabled': 'true'});
+        $(this.startBtn).attr({'disabled': 'true'});
+        $(this.finishButton).attr({'disabled': 'true'});
         _this.running = 0;
         _this.done = 1;
         if (_this.taken === 0) {
           _this.taken = 1;
-          _this.checkTimedStorage();
+          _this.finishAssessment();
         }
       }
     }, 1000);
@@ -1147,15 +1181,16 @@ Timed.prototype.increment = function () {
 
 Timed.prototype.checkIfFinished = function () {
   if (this.tookTimedExam()) {
-    $('#start').attr('disabled', true);
-    $('#pause').attr('disabled', true);
-    $('#finish').attr('disabled', true);
+    $(this.startBtn).attr('disabled', true);
+    $(this.pauseBtn).attr('disabled', true);
+    $(this.finishButton).attr('disabled', true);
     this.resetTimedMCMFStorage();
-    $('#timed_Test').show();
+    $(this.timedDiv).show();
   }
 };
 
 Timed.prototype.tookTimedExam = function () {
+  // Checks if this exam has been taken before
 
   $('#output').css({
     'width': '50%',
@@ -1166,7 +1201,7 @@ Timed.prototype.tookTimedExam = function () {
     'border-radius': '25px'
   });
 
-  $('#results').css({
+  $(this.score).css({
     'width': '50%',
     'margin': '0 auto',
     'background-color': '#DFF0D8',
@@ -1208,11 +1243,13 @@ Timed.prototype.finishAssessment = function () {
   this.running = 0;
   this.done = 1;
   this.taken = 1;
-  this.checkTimedStorage();
+  this.submitTimedProblems();
   this.checkScore();
+  $(this.pauseBtn).attr('disabled', true);
+  this.finishButton.disabled = true;
 };
 
-Timed.prototype.checkTimedStorage = function () {
+Timed.prototype.submitTimedProblems = function () {
   var _this = this;
   for (var i = 0; i < this.MCMAList.length; i++) {
     _this.MCMAList[i].processMCMASubmission();
@@ -1227,6 +1264,8 @@ Timed.prototype.checkTimedStorage = function () {
 
 Timed.prototype.checkScore = function () {
   var _this = this;
+
+  // Gets the score of each MCMA problem
   for (var i = 0; i < this.MCMAList.length; i++) {
     var correctMCMA = _this.MCMAList[i].checkCorrectTimedMCMA();
     if (correctMCMA) {
@@ -1238,6 +1277,7 @@ Timed.prototype.checkScore = function () {
     }
   }
 
+  // Gets the score of each MCMF problem
   for (var j = 0; j < this.MCMFList.length; j++) {
     var correctMCMF = _this.MCMFList[j].checkCorrectTimedMCMF();
     if (correctMCMF) {
@@ -1249,6 +1289,7 @@ Timed.prototype.checkScore = function () {
     }
   }
 
+  // Gets the score of each FITB problem
   for (var k = 0; k < this.FITBArray.length; k++) {
     var correctFITB = _this.FITBArray[k].checkCorrectTimedFITB();
     if (correctFITB) {
@@ -1261,7 +1302,9 @@ Timed.prototype.checkScore = function () {
   }
 };
 
-// Function that calls the methods to construct the components on page load
+/*=======================================================
+=== Function that calls the constructors on page load ===
+=======================================================*/
 
 $(document).ready(function () {
   $('[data-component=timedAssessment]').each(function (index) {
