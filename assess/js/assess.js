@@ -250,11 +250,11 @@ FITB.prototype.checkFITBStorage = function () {
     modifiers = 'i';
   }
   var patt = RegExp(this.correctAnswer, modifiers);
-  var isCorrect = patt.test(given);
+  this.isCorrect = patt.test(given);
   if (given !== '') {
-    this.correct = isCorrect;
+    this.correct = this.isCorrect;
   }
-  if (!isCorrect) {
+  if (!this.isCorrect) {
     var fbl = this.feedbackArray;
     for (var i = 0; i < fbl.length; i++) {
       patt = RegExp(fbl[i][0]);
@@ -269,11 +269,24 @@ FITB.prototype.checkFITBStorage = function () {
   storage_arr.push(given);
   storage_arr.push(this.correctAnswer);
   localStorage.setItem(eBookConfig.email + ':' + this.divid, storage_arr.join(';'));
-  feedBack(this.feedBackDiv, isCorrect, this.feedbackArray);
-  var answerInfo = 'answer:' + given + ':' + (isCorrect ? 'correct' : 'no');
+  this.renderFITBFeedback();
+  var answerInfo = 'answer:' + given + ':' + (this.isCorrect ? 'correct' : 'no');
   logBookEvent({'event': 'fillb', 'act': answerInfo, 'div_id': this.divid});
   if (!this.timed) {
     this.compareButton.disabled = false;
+  }
+};
+
+FITB.prototype.renderFITBFeedback = function () {
+  if (this.isCorrect) {
+    $(this.feedBackDiv).html('You are Correct!');
+    $(this.feedBackDiv).attr('class', 'alert alert-success');
+  } else {
+    if (this.feedbackArray === null) {
+      this.feedbackArray = '';
+    }
+    $(this.feedBackDiv).html('Incorrect.  ' + this.feedbackArray);
+    $(this.feedBackDiv).attr('class', 'alert alert-danger');
   }
 };
 
