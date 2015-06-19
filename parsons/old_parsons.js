@@ -1,5 +1,4 @@
-
-
+var u_s = _;
    // regexp used for trimming
    var trimRegexp = /^\s*(.*?)\s*$/;
    var translations = {
@@ -76,6 +75,7 @@
   //  - variable: a variable name to be tested
   //  - expected: expected value of the variable after code execution
   var VariableCheckGrader = function(parson) {
+    console.log("Variable grader");
     this.parson = parson;
   };
   // Executes the given code using Skulpt and returns an object with variable
@@ -147,6 +147,7 @@
     return msg;
   };
   VariableCheckGrader.prototype.grade = function() {
+    console.log("In variable check grader");
     var parson = this.parson,
         that = this,
         feedback = "",
@@ -158,7 +159,7 @@
       var executableCode = (testdata.initcode || "") + "\n" + student_code + "\n" + (testdata.code || "");
       var variables, expectedVals;
       if ('variables' in testdata) {
-        variables = _.keys(testdata.variables);
+        variables = u_s.keys(testdata.variables);
         expectedVals = testdata.variables;
       } else {
         variables = [testdata.variable];
@@ -207,9 +208,9 @@
     });
     return { html: feedback, "log_errors": log_errors, success: all_passed };
   };
-
   // Grader that will execute student code and Skulpt unittests
   var UnitTestGrader = function(parson) {
+    console.log("UT");
     this.parson = parson;
   };
   // copy the line number fixer from VariableCheckGrader
@@ -274,7 +275,9 @@
   };
 
   // The "original" grader for giving line based feedback.
+
   var LineBasedGrader = function(parson) {
+    console.log("LI")
     this.parson = parson;
   };
   LineBasedGrader.prototype.grade = function(elementId) {
@@ -294,6 +297,7 @@
       if (line.distractor) {
         incorrectLines.push(id);
         wrong_order = true;
+        console.log($("#" + parson.id_prefix + id));
         $("#" + parson.id_prefix + id).addClass("incorrectPosition");
       } else {
         lines.push(id);
@@ -301,7 +305,9 @@
     }
 
     var inv = LIS.best_lise_inverse(lines);
-    _.each(inv, function(itemId) {
+    u_s.each(inv, function(itemId) {
+            console.log("inside the each");
+            console.log($("#" + parson.id_prefix + itemId))
             $("#" + parson.id_prefix + itemId).addClass("incorrectPosition");
             incorrectLines.push(itemId);
           });
@@ -339,6 +345,7 @@
              code_line.indent == model_line.indent &&
              errors.length === 0) {
           $("#" + code_line.id).addClass("correctPosition");
+          console.log($("#" + code_line.id))
         }
       }
     }
@@ -411,14 +418,14 @@
      this.modified_lines = [];
      this.extra_lines = [];
      this.model_solution = [];
-     
+
      //To collect statistics, feedback should not be based on this
      this.user_actions = [];
-     
+
      //State history for feedback purposes
      this.state_path = [];
      this.states = {};
-     
+
      var defaults = {
        'incorrectSound': false,
        'x_indent': 50,
@@ -427,7 +434,6 @@
        'max_wrong_lines': 10,
        'lang': 'en'
      };
-     
      this.options = jQuery.extend({}, defaults, options);
      this.feedback_exists = false;
      this.id_prefix = options['sortableId'] + 'codeline';
@@ -458,7 +464,7 @@
       this.grader = new LineBasedGrader(this);
     }
    };
-      
+
    //Public methods
    ParsonsWidget.prototype.parseLine = function(spacePrefixedLine) {
      return {
@@ -466,7 +472,7 @@
        indent: spacePrefixedLine.length - spacePrefixedLine.replace(/^\s+/,"").length
      };
    };
-   
+
    ParsonsWidget.prototype.parseCode = function(lines, max_distractors) {
      var distractors = [],
      indented = [],
@@ -494,17 +500,17 @@
                 }
               }
             });
-     
+
      // Normalize indents and make sure indentation is valid
      var normalized = this.normalizeIndents(indented);
-     
+
      $.each(normalized, function(index, item) {
               if (item.indent < 0) {
                 errors.push(this.translations.no_matching(normalized.orig));
               }
               widgetData.push(item);
             });
-     
+
      // Remove extra distractors
      var permutation = this.getRandomPermutation(distractors.length);
      var selected_distractors = [];
@@ -512,7 +518,7 @@
        selected_distractors.push(distractors[permutation[i]]);
        widgetData.push(distractors[permutation[i]]);
      }
-     
+
      return {
        solution:  $.extend(true, [], normalized),
        distractors: $.extend(true, [], selected_distractors),
@@ -554,7 +560,7 @@
        return hash.join("-");
      }
    };
-   
+
    ParsonsWidget.prototype.solutionHash = function() {
        return this.getHash("#ul-" + this.options.sortableId);
    };
@@ -567,7 +573,7 @@
      var hash = this.solutionHash();
      var previously = this.states[hash];
      if (!previously) { return undefined; }
-     var visits = _.filter(this.state_path, function(state) {
+     var visits = u_s.filter(this.state_path, function(state) {
                              return state == hash;
                            }).length - 1;
      var i, stepsToLast = 0, s,
@@ -581,7 +587,7 @@
      }
      return $.extend(false, {'visits': visits, stepsToLast: stepsToLast}, previously);
    };
-   
+
   /**
     * Returns states of the toggles for logging purposes
     */
@@ -744,7 +750,7 @@
      } else {
        h = hash.split("-");
      }
-     
+
      var ids = [];
      for (var i = 0; i < h.length; i++) {
        lineValues = h[i].split("_");
@@ -764,7 +770,7 @@
      } else {
        h = hash.split("-");
      }
-     
+
      var ids = [];
      for (var i = 0; i < h.length; i++) {
          lineValues = h[i].split("_");
