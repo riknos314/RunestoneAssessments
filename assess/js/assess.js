@@ -155,11 +155,7 @@ FITB.prototype.createFITBElement = function () {
   this.renderFITBFeedbackDiv();
 
   // replaces the intermediate HTML for this component with the rendered HTML of this component
-  console.log(this.inputDiv);
-  console.log(this.origElem);
-  console.log(document.getElementById(this.divid) === this.origElem);
   $(this.origElem).replaceWith(this.inputDiv);
-  console.log(document.getElementById(this.divid));
 };
 
 FITB.prototype.renderFITBContainer = function () {
@@ -957,9 +953,6 @@ Timed.prototype.init = function (opts) {
   this.FITBArray = [];  // list of FIB problems
 
   this.renderTimedAssess();
-  this.renderMCMFquestions();
-  this.renderMCMAquestions();
-  this.renderFIBquestions();
 
 };
 
@@ -972,6 +965,7 @@ Timed.prototype.renderTimedAssess = function () {
   this.renderTimer();
   this.renderControlButtons();
   this.assessDiv.appendChild(this.timedDiv);  // This can't be appended in renderContainer because then it renders above the timer and control buttons.
+  this.renderMCMAquestions();
   this.renderMCMFquestions();
   this.renderFIBquestions();
   this.renderSubmitButton();
@@ -991,7 +985,8 @@ Timed.prototype.renderContainer = function () {
     'id': 'timed_Test',
     'style': 'display:none'
   });
-  this.newChildren = this.timedDiv.childNodes;
+  this.newChildren = this.timedDiv.childNodes;  // These are the...
+  // ...components that need to be rendered inside of the timed test
 };
 
 Timed.prototype.renderTimer = function () {
@@ -1057,7 +1052,7 @@ Timed.prototype.renderFeedbackContainer = function () {
 };
 
 Timed.prototype.renderMCMFquestions = function () {
-  // this finds all the MCMF questions and call their constructor method
+  // this finds all the MCMF questions in this timed assessment and calls their constructor method
   // Also adds them to MCMFList
   var _this = this;
   for (var i = 0; i < this.newChildren.length; i++) {
@@ -1071,7 +1066,7 @@ Timed.prototype.renderMCMFquestions = function () {
 };
 
 Timed.prototype.renderMCMAquestions = function () {
-  // this finds all the MCMA questions and calls their constructor method
+  // this finds all the MCMA questions in this timed assessment and calls their constructor method
   // Also adds them to MCMAList
   var _this = this;
   for (var i = 0; i < this.newChildren.length; i++) {
@@ -1086,7 +1081,7 @@ Timed.prototype.renderMCMAquestions = function () {
 };
 
 Timed.prototype.renderFIBquestions = function () {
-  // this finds all the FIB questions and calls their constructor method
+  // this finds all the FIB questions in this timed assessment and calls their constructor method
   // Also adds them to FIBList
   var _this = this;
   for (var i = 0; i < this.newChildren.length; i++) {
@@ -1331,13 +1326,13 @@ $(document).ready(function () {
   }
 
   $('[data-component=fillintheblank]').each(function (index) {  // FITB
-    if ($.inArray(this.id, TimedChildren) >= 0) { // If the fillintheblank element exists within a timed component, don't render it here
+    if ($.inArray(this.id, TimedChildren) < 0) { // If the fillintheblank element exists within a timed component, don't render it here
       FITBList[this.id] = new FITB({'orig': this});
     }
   });
 
   $('[data-component=multiplechoice]').each(function (index) {  // MC
-    if ($.inArray(this.id, TimedChildren) >= 0) { // If the fillintheblank element exists within a timed component, don't render it here
+    if ($.inArray(this.id, TimedChildren) < 0) { // If the fillintheblank element exists within a timed component, don't render it here
       mcList[this.id] = new MultipleChoice({'orig': this});
     }
   });
