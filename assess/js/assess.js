@@ -2,7 +2,7 @@
 ========      Master Assess.js     =========
 ============================================
 ===     This file contains the JS for    ===
-=== all Runestone assessment components. ===
+=== the Runestone assessment components. ===
 ============================================
 ===              Created By              ===
 ===           Isaiah Mayerchak           ===
@@ -32,7 +32,6 @@ RunestoneBase.prototype.logRunEvent = function (info) {
 
 var feedBack = function (elem, correct, feedbackText) {    // Displays feedback on page--miscellaneous function that can be used by multple objects
     // elem is the Element in which to put the feedback
-  console.log(elem);
   if (correct) {
     $(elem).html('You are Correct!');
     $(elem).attr('class', 'alert alert-success');
@@ -64,8 +63,6 @@ var renderTimedIcon = function (component) {
 ==================================================*/
 
 var FITBList = {};  // Object containing all instances of FITB that aren't a child of a timed assessment.
-
-FITB.prototype = new RunestoneBase();
 
 // FITB constructor
 function FITB (opts) {
@@ -158,7 +155,11 @@ FITB.prototype.createFITBElement = function () {
   this.renderFITBFeedbackDiv();
 
   // replaces the intermediate HTML for this component with the rendered HTML of this component
+  console.log(this.inputDiv);
+  console.log(this.origElem);
+  console.log(document.getElementById(this.divid) === this.origElem);
   $(this.origElem).replaceWith(this.inputDiv);
+  console.log(document.getElementById(this.divid));
 };
 
 FITB.prototype.renderFITBContainer = function () {
@@ -344,7 +345,6 @@ FITB.prototype.checkCorrectTimedFITB = function () {
 =========================================
 =======================================*/
 
-MultipleChoice.prototype = new RunestoneBase();
 var mcList = {};  // Multiple Choice dictionary
 
 // constructor
@@ -991,6 +991,7 @@ Timed.prototype.renderContainer = function () {
     'id': 'timed_Test',
     'style': 'display:none'
   });
+  this.newChildren = this.timedDiv.childNodes;
 };
 
 Timed.prototype.renderTimer = function () {
@@ -1002,7 +1003,7 @@ Timed.prototype.renderTimer = function () {
 };
 
 Timed.prototype.renderControlButtons = function () {
-  var _this = this
+  var _this = this;
   this.controlDiv = document.createElement('div');
   $(this.controlDiv).attr({
     'id': 'controls',
@@ -1059,8 +1060,8 @@ Timed.prototype.renderMCMFquestions = function () {
   // this finds all the MCMF questions and call their constructor method
   // Also adds them to MCMFList
   var _this = this;
-  for (var i = 0; i < this.children.length; i++) {
-    var tmpChild = this.children[i];
+  for (var i = 0; i < this.newChildren.length; i++) {
+    var tmpChild = this.newChildren[i];
     if ($(tmpChild).is('[data-component=multiplechoice]')) {
       if ($(tmpChild).data('multipleanswers') !== true) {
         _this.MCMFList.push(new MultipleChoice({'orig': tmpChild}));
@@ -1073,8 +1074,8 @@ Timed.prototype.renderMCMAquestions = function () {
   // this finds all the MCMA questions and calls their constructor method
   // Also adds them to MCMAList
   var _this = this;
-  for (var i = 0; i < this.children.length; i++) {
-    var tmpChild = this.children[i];
+  for (var i = 0; i < this.newChildren.length; i++) {
+    var tmpChild = this.newChildren[i];
     if ($(tmpChild).is('[data-component=multiplechoice]')) {
       if ($(tmpChild).data('multipleanswers') === true) {
         var newMCMA = new MultipleChoice({'orig': tmpChild});
@@ -1088,8 +1089,8 @@ Timed.prototype.renderFIBquestions = function () {
   // this finds all the FIB questions and calls their constructor method
   // Also adds them to FIBList
   var _this = this;
-  for (var i = 0; i < this.children.length; i++) {
-    var tmpChild = this.children[i];
+  for (var i = 0; i < this.newChildren.length; i++) {
+    var tmpChild = this.newChildren[i];
     if ($(tmpChild).is('[data-component=fillintheblank]')) {
       var newFITB = new FITB({'orig': tmpChild});
       _this.FITBArray.push(newFITB);
@@ -1323,13 +1324,22 @@ $(document).ready(function () {
   $('[data-component=timedAssessment]').each(function (index) {
     TimedList[this.id] = new Timed({'orig': this});
   });
+  for (var key in TimedList) {
+    if (TimedList.hasOwnProperty(key)) {
+      var TimedChildren = TimedList[key].origElem.childNodes;
+    }
+  }
 
   $('[data-component=fillintheblank]').each(function (index) {  // FITB
-    FITBList[this.id] = new FITB({'orig': this});
+    if ($.inArray(this.id, TimedChildren) >= 0) { // If the fillintheblank element exists within a timed component, don't render it here
+      FITBList[this.id] = new FITB({'orig': this});
+    }
   });
 
   $('[data-component=multiplechoice]').each(function (index) {  // MC
-    mcList[this.id] = new MultipleChoice({'orig': this});
+    if ($.inArray(this.id, TimedChildren) >= 0) { // If the fillintheblank element exists within a timed component, don't render it here
+      mcList[this.id] = new MultipleChoice({'orig': this});
+    }
   });
 
 });
