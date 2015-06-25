@@ -110,9 +110,10 @@ FITB.prototype.init = function (opts) {
 ====================================*/
 
 FITB.prototype.findQuestion = function () {         // Gets question text and puts it into this.question
+    var firstAnswerId;
     for (var i = 0; i < this.children.length; i++) {
         if ($(this.children[i]).is("[data-answer]")) {
-            var firstAnswerId = this.children[i].id;
+            firstAnswerId = this.children[i].id;
             break;
         }
     }
@@ -922,14 +923,14 @@ MultipleChoice.prototype.feedBackTimedMC = function () {
 
 var TimedList = {};    // Timed dictionary
 
-Timed.prototype = new RunestoneBase();
-
 // Timed constructor
 function Timed (opts) {
     if (opts) {
         this.init(opts);
     }
 }
+
+Timed.prototype = new RunestoneBase();
 
 /*====================================
 === Setting Timed Assess Variables ===
@@ -1018,7 +1019,8 @@ Timed.prototype.renderControlButtons = function () {
     };
     $(this.pauseBtn).attr({
         "class": "btn btn-default",
-        "id": "pause"
+        "id": "pause",
+        "disabled":"true"
     });
     this.pauseBtn.textContent = "Pause";
     this.pauseBtn.onclick = function () {
@@ -1104,6 +1106,7 @@ Timed.prototype.startAssessment = function () {
     this.tookTimedExam();
     if (!_this.taken) {
         $(this.startBtn).attr("disabled", true);
+        $(this.pauseBtn).attr("disabled", false);
         if (_this.running === 0 && _this.paused === 0) {
             _this.running = 1;
             $(this.timedDiv).show();

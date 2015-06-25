@@ -32,6 +32,7 @@
   "smarttabs":    true,
   "sub":          true,
   "validthis":    true,
+  "multistr":     true,
 
 
   /*** Environments ***/
