@@ -8,7 +8,15 @@
     "goog",
     "COMPILED",
     "Promise",
-    "$"
+    "$",
+    "console",
+    "jQuery",
+    "_",
+    "alert",
+    "prettyPrint",
+    "LIS",
+    "d3",
+    "jsPlumb"
   ],
 
   /*** Enforcing options ***/
@@ -32,6 +40,9 @@
   "smarttabs":    true,
   "sub":          true,
   "validthis":    true,
+  "multistr":     true,
+  "shadow":       true,
+  "latedef":      "nofunc",
 
 
   /*** Environments ***/
