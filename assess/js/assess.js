@@ -900,10 +900,11 @@ MultipleChoice.prototype.checkCorrectTimedMCMF = function () {
 
 MultipleChoice.prototype.feedBackTimedMC = function () {
   var _this = this;
-  for (var i = 0; i < this.answerList.length; i++) {
-    var feedbackobj = $('#' + _this.divid + '_eachFeedback_' + i);
+  for (var i = 0; i < this.indexArray.length; i++) {
+    var tmpindex = this.indexArray[i];
+    var feedbackobj = $('#' + _this.divid + '_eachFeedback_' + tmpindex);
     $(feedbackobj).text(_this.feedbackList[i]);
-    var tmpid = _this.answerList[i].id;
+    var tmpid = _this.answerList[tmpindex].id;
     if (_this.correctList.indexOf(tmpid) >= 0) {
       $(feedbackobj).attr({'class': 'alert alert-success'});
     } else {
@@ -1332,7 +1333,7 @@ $(document).ready(function () {
   });
 
   $('[data-component=multiplechoice]').each(function (index) {  // MC
-    if ($.inArray(this.id, TimedChildren) < 0) { // If the fillintheblank element exists within a timed component, don't render it here
+    if ($.inArray(this.id, TimedChildren) < 0) { // If the MC element exists within a timed component, don't render it here
       mcList[this.id] = new MultipleChoice({'orig': this});
     }
   });
