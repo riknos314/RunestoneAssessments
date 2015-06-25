@@ -44,10 +44,14 @@ def visit_fitb_node(self,node):
         node.fitb_options['casei'] = 'true'
     else:
         node.fitb_options['casei'] = 'false'
+    if 'timed' in node.fitb_options:
+        node.fitb_options['timed'] = 'data-timed'
+    else:
+        node.fitb_options['timed'] = ''
     res = node.template_start % node.fitb_options
 
     self.body.append(res)
-        
+
 
 def depart_fitb_node(self,node):
     fbl = []
@@ -82,13 +86,14 @@ class FillInTheBlank(Assessment):
         'feedback':directives.unchanged,
         'feedback1':directives.unchanged,
         'feedback2':directives.unchanged,
-        'feedback3':directives.unchanged,                   
-        'feedback4':directives.unchanged,  
+        'feedback3':directives.unchanged,
+        'feedback4':directives.unchanged,
         'blankid':directives.unchanged,
+        'timed':directives.flag,
         'iscode':directives.flag,
         'casei':directives.flag  # case insensitive matching
     }
-    
+
     def run(self):
         """
             process the fillintheblank directive and generate html for output.
@@ -99,12 +104,14 @@ class FillInTheBlank(Assessment):
             :correct: somestring
             :feedback: -- displayed if wrong
             :feedback: ('.*', 'this is the message')
+            :timed: Flag that indicated this is part of a timed block
+            :casei: Case insensitive boolean
             Question text
             ...
             """
-        
+
         TEMPLATE_START = '''
-        <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s">%(bodytext)s
+        <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s" %(timed)s>%(bodytext)s
         <span data-answer id="%(divid)s_answer">%(correct)s</span>
             '''
 
@@ -115,7 +122,7 @@ class FillInTheBlank(Assessment):
 
         TEMPLATE_END = '''
         </p>
-            '''   
+            '''
 
         super(FillInTheBlank,self).run()
 
@@ -127,5 +134,3 @@ class FillInTheBlank(Assessment):
         self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [fitbNode]
-
-

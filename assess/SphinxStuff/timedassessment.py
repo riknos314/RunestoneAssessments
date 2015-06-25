@@ -72,7 +72,7 @@ class StartTimed(Directive):
             :timelimit: Number of seconds student has to complete the timed assessment block
             """
 
-        
+
         self.options['divid'] = self.arguments[0]
 
         TEMPLATE_START = '''
@@ -93,8 +93,8 @@ class StartTimed(Directive):
 
 class EndTimed(Directive):
     """Ends a timed block of assessments"""
-    required_arguments = 1
-    optional_arguments = 1
+    required_arguments = 0
+    optional_arguments = 0
     has_content = False
     final_argument_whitespace = True
     option_spec = {}
@@ -104,12 +104,8 @@ class EndTimed(Directive):
             process the timed directive and generate html for output.
             :param self:
             :return:
-            .. endTimed:: qname
+            .. endTimed::
             """
-
-        
-        self.options['divid'] = self.arguments[0]
-
         TEMPLATE_START = '''
             '''
 

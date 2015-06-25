@@ -35,7 +35,7 @@ def setup(app):
 
 
 TEMPLATE = """
-<pre data-lang="python" data-component="datafile" id=%(divid)s %(hidden)s data-edit=%(edit)s %(rows)s %(cols)s>
+<pre data-lang="python" data-component="datafile" id=%(divid)s %(hidden)s data-edit=%(edit)s data-rows="%(rows)s" data-cols="%(cols)s">
 %(filecontent)s
  </pre>
 """
@@ -79,7 +79,7 @@ def purge_datafiles(app,env,docname):
 
 class DataFile(Directive):
     required_arguments = 1
-    optional_arguments = 2
+    optional_arguments = 0
     has_content = True
     option_spec = {
         'hide':directives.flag,
@@ -89,6 +89,16 @@ class DataFile(Directive):
     }
 
     def run(self):
+        """
+            process the multiplechoice directive and generate html for output.
+            :param self:
+            :return:
+            .. datafile:: identifier
+                :edit: Option that makes the datafile editable
+                :cols: If editable, number of columns--default is 20
+                :rows: If editable, number of rows--default is 40
+                :hide: Flag that sets a non-editable datafile to be hidden
+        """
         env = self.state.document.settings.env
 
         if not hasattr(env,'datafilecounter'):
@@ -101,9 +111,13 @@ class DataFile(Directive):
         #    self.options['rows'] = 20
 
         if 'cols' in self.options:
-            self.options['cols'] = "data-cols=" + str(self.options['cols'])
+            self.options['cols'] = self.options['cols']
+        else:
+            self.options['cols'] = min(65,max([len(x) for x in self.content]))
         if 'rows' in self.options:
-            self.options['rows'] = "data-rows=" + str(self.options['rows'])
+            self.options['rows'] = self.options['rows']
+        else:
+            self.options['rows'] = 20
 
         self.options['divid'] = self.arguments[0]
         if self.content:
