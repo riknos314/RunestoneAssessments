@@ -12,7 +12,6 @@
 function RunestoneBase () {   // Basic parent stuff
 
 }
-
 RunestoneBase.prototype.logBookEvent = function (info) {
     console.log("logging event " + this.divid);
 };

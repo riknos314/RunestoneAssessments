@@ -35,7 +35,7 @@ def setup(app):
 
 
 TEMPLATE = """
-<pre data-lang="python" data-component="datafile" id=%(divid)s %(hidden)s data-edit=%(edit)s data-rows="%(rows)s" data-cols="%(cols)s">
+<pre data-lang="python" data-component="datafile" id=%(divid)s %(hidden)s data-edit="%(edit)s" data-rows="%(rows)s" data-cols="%(cols)s">
 %(filecontent)s
  </pre>
 """
