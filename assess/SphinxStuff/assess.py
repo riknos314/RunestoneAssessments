@@ -31,7 +31,6 @@ def setup(app):
     app.add_directive('qnum', QuestionNumber)
     app.add_directive('starttimed', StartTimed)
     app.add_directive('endtimed', EndTimed)
-
     app.add_javascript('assess.js')
 
     app.add_node(timedNode, html=(visit_timed_node, depart_timed_node))
