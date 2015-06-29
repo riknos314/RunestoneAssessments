@@ -1339,6 +1339,7 @@ $(document).ready(function () {
     });
 
     $("[data-component=multiplechoice]").each(function (index) {    // MC
+        console.log("Hi");
         if ($.inArray(this.id, TimedChildren) < 0) { // If the MC element exists within a timed component, don"t render it here
             mcList[this.id] = new MultipleChoice({"orig": this});
         }
