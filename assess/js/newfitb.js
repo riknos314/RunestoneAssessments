@@ -1,3 +1,18 @@
+/*==========================================
+========      Master FITB.js     =========
+============================================
+===     This file contains the JS for    ===
+===     the Runestone FITB component.    ===
+============================================
+===              Created By              ===
+===           Isaiah Mayerchak           ===
+===                 and                  ===
+===             Kirby Olson              ===
+===                6/29/15                ===
+==========================================*/
+
+
+
 function RunestoneBase () {    // Parent function
 
 }
@@ -15,7 +30,7 @@ RunestoneBase.prototype.logRunEvent = function (info) {
 === (used by more than one component) ===
 =======================================*/
 
-var feedBack = function (elem, correct, feedbackText) {        // Displays feedback on page--miscellaneous function that can be used by multple objects
+var feedBack = function (elem, correct, feedbackText) {        // Displays feedback on page--miscellaneous function that can be used by multpile objects
     // elem is the Element in which to put the feedback
     if (correct) {
         $(elem).html("You are Correct!");
@@ -47,7 +62,7 @@ var renderTimedIcon = function (component) {
 == Begin code for the Fill In The Blank component ==
 ==================================================*/
 
-var FITBList = {};    // Object containing all instances of FITB that aren"t a child of a timed assessment.
+var FITBList = {};    // Object containing all instances of FITB that aren't a child of a timed assessment.
 
 // FITB constructor
 function FITB (opts) {
@@ -67,16 +82,17 @@ FITB.prototype.init = function (opts) {
     this.divid = orig.id;
     this.questionArray = [];
     this.correct = [];
-    this.feedbackArray = [];// Array of arrays--each inside array contains 2 elements: the regular expression, then text
-    this.children = []; // this contains all of the child elements of the entire tag...
-    // ... used for ensuring that only things that are part of this instance are being touchedh
-    this.correctAnswerArray = [];                 // Correct answer--is a regular expression
+    this.feedbackArray = [];
+    /* this.feedbackArray is an array of array of arrays--each outside element is a blank. Each middle element is a different "incorrect" feedback
+    that is tailored for how the question is incorrectly answered. Each inside array contains 2 elements: the regular expression, then text */
+    this.children = [];   // this contains all of the child elements of the entire tag...
+    this.correctAnswerArray = [];   // This array contains the regular expressions of the correct answers
 
-    this.adoptChildren();
+    this.adoptChildren();   // Populates this.children
     this.populateCorrectAnswerArray();
     this.populateQuestionArray();
 
-    this.casei = false;                                                             // Case insensitive--boolean
+    this.casei = false;   // Case insensitive--boolean
     if ($(this.origElem).data("casei") === true) {
         this.casei = true;
     }
@@ -111,7 +127,7 @@ FITB.prototype.populateCorrectAnswerArray = function () {
         }
     }
 };
-FITB.prototype.populateQuestionArray = function () {         // Gets question text and puts it into this.question
+FITB.prototype.populateQuestionArray = function () {
     for (var i = 0; i < this.children.length; i++) {
         var firstAnswerId = null;
         for (var j = 0; j < this.children[i].childNodes.length; j++) {
@@ -128,7 +144,7 @@ FITB.prototype.populateQuestionArray = function () {         // Gets question te
     }
 };
 
-FITB.prototype.populateFeedbackArray = function () {        // Populates this.feedbackArray
+FITB.prototype.populateFeedbackArray = function () {
     for (var i = 0; i < this.children.length; i++) {
         var AnswerNodeList = [];
         var tmpContainArr = [];
@@ -159,7 +175,7 @@ FITB.prototype.populateFeedbackArray = function () {        // Populates this.fe
 FITB.prototype.createFITBElement = function () {
     this.renderFITBInput();
     if (!this.timed) {
-        // don"t render buttons if part of a timed assessment
+        // don't render buttons if part of a timed assessment
         this.renderFITBButtons();
     }
     this.renderFITBFeedbackDiv();
@@ -260,7 +276,7 @@ FITB.prototype.checkFITBStorage = function () {
     // Starts chain of functions which ends with feedBack() displaying feedback to user
     this.evaluateAnswers();
     this.renderFITBFeedback();
-    var answerInfo = "answer:" + this.isCorrectArray + ":" + (this.isCorrect ? "correct" : "no");
+    var answerInfo = "answer:" + this.given_arr + ":" + (this.isCorrect ? "correct" : "no");
     this.logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
     if (!this.timed) {
         this.compareButton.disabled = false;
@@ -268,7 +284,7 @@ FITB.prototype.checkFITBStorage = function () {
 };
 
 FITB.prototype.evaluateAnswers = function () {
-    var given_arr = [];
+    this.given_arr = [];
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
 
@@ -289,9 +305,9 @@ FITB.prototype.evaluateAnswers = function () {
             this.populateDisplayFeed(i, given);
         }
         // store the answer in local storage
-        given_arr.push(given);
+        this.given_arr.push(given);
     }
-    localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", given_arr.join(";"));
+    localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", this.given_arr.join(";"));
 };
 
 FITB.prototype.populateDisplayFeed = function (index, given) {
@@ -315,7 +331,11 @@ FITB.prototype.renderFITBFeedback = function () {
         if (this.displayFeed === null) {
             this.displayFeed = "";
         }
-        $(this.feedBackDiv).html("Incorrect.    " + this.displayFeed);
+        $(this.feedBackDiv).html("Incorrect.    ");
+        for (var i = 0; i < this.displayFeed.length; i++) {
+            this.feedBackDiv.innerHTML += this.displayFeed[i];
+            this.feedBackDiv.appendChild(document.createElement("br"));
+        }
         $(this.feedBackDiv).attr("class", "alert alert-danger");
     }
 };
@@ -331,7 +351,7 @@ FITB.prototype.compareFITBAnswers = function () {             // Called by compa
     jQuery.get(eBookConfig.ajaxURL + "gettop10Answers", data, this.compareFITB);
 };
 
-FITB.prototype.compareFITB = function (data, status, whatever) {
+FITB.prototype.compareFITB = function (data, status, whatever) {   // Creates a modal dialog
     var answers = eval(data)[0];
     var misc = eval(data)[1];
 
