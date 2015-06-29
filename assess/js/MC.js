@@ -10,7 +10,7 @@ var jQuery = $;
 // constructor
 function MultipleChoice (opts) {
     if (opts) {
-        this.init(opts);
+        this.MCinit(opts);
     }
 }
 
@@ -18,7 +18,7 @@ function MultipleChoice (opts) {
 ===     Setting MC variables      ===
 ===================================*/
 
-MultipleChoice.prototype.init = function (opts) {
+MultipleChoice.prototype.MCinit = function (opts) {
     //RunestoneBase.apply(this, arguments);
     var orig = opts.orig;    // entire <ul> element
     this.origElem = orig;
@@ -34,10 +34,6 @@ MultipleChoice.prototype.init = function (opts) {
     this.random = false;
     if ($(this.origElem).is("[data-random]")) {
         this.random = true;
-    }
-    this.timed = false;
-    if ($(this.origElem).is("[data-timed]")) {
-        this.timed = true;
     }
 
     this.correct = null; // used to inform timed instances if this question was answered correctly
@@ -118,9 +114,7 @@ MultipleChoice.prototype.createCorrectList = function () {
 
 MultipleChoice.prototype.createMCForm = function () {
     this.renderMCContainer();
-    if (this.timed) {
-        this.renderTimedIcon();
-    }
+    this.renderMCquestion();
     this.renderMCForm();    // renders the form with options and buttons
     this.renderMCfeedbackDiv();
 
@@ -130,9 +124,15 @@ MultipleChoice.prototype.createMCForm = function () {
 
 MultipleChoice.prototype.renderMCContainer = function () {
     this.MCContainer = document.createElement("div");
-    $(this.MCContainer).text(this.question);
     $(this.MCContainer).addClass("alert alert-warning");
     this.MCContainer.id = this.divid;
+};
+
+MultipleChoice.prototype.renderMCquestion = function () {
+    this.questionDiv = document.createElement("div");
+    $(this.questionDiv).text(this.question);
+    this.questionDiv.id = this.divid + "_question";
+    this.MCContainer.appendChild(this.questionDiv);
 };
 
 MultipleChoice.prototype.renderMCForm = function () {
@@ -143,15 +143,9 @@ MultipleChoice.prototype.renderMCForm = function () {
         "action": "",
         "onsubmit": "return false;"
     });
-
     // generate form options
     this.renderMCFormOpts();
-
-    // If timed, don"t render buttons
-    if (!this.timed) {
-        this.renderMCFormButtons();
-    }
-
+    this.renderMCFormButtons();
     // Append the form to the container
     this.MCContainer.appendChild(this.optsForm);
 };
@@ -200,13 +194,6 @@ MultipleChoice.prototype.renderMCFormOpts = function () {
         this.optsForm.appendChild(input);
         this.optsForm.appendChild(label);
         this.optsForm.appendChild(document.createElement("br"));
-
-        // if timed, add a feedback Div for the option
-        if (this.timed) {
-            var feedBackEach = document.createElement("div");
-            feedBackEach.id = this.divid + "_eachFeedback_" + k;
-            this.optsForm.appendChild(feedBackEach);
-        }
     }
 };
 
@@ -214,6 +201,7 @@ MultipleChoice.prototype.renderMCFormButtons = function () {
     var _this = this;    // used for defining onclick functions because of the different scope
 
     // Create submit button
+    this.buttonDiv = document.createElement("div");
     this.submitButton = document.createElement("button");
     this.submitButton.textContent = "Check Me";
     $(this.submitButton).attr({
@@ -229,7 +217,7 @@ MultipleChoice.prototype.renderMCFormButtons = function () {
             _this.processMCMFSubmission();
         };
     } // end else
-    this.optsForm.appendChild(this.submitButton);
+    this.buttonDiv.appendChild(this.submitButton);
 
     // Create compare button
     this.compareButton = document.createElement("button");
@@ -243,7 +231,8 @@ MultipleChoice.prototype.renderMCFormButtons = function () {
     this.compareButton.onclick = function () {
         _this.compareAnswers(_this.divid);
     };
-    this.optsForm.appendChild(this.compareButton);
+    this.buttonDiv.appendChild(this.compareButton);
+    this.optsForm.appendChild(this.buttonDiv);
 };
 
 MultipleChoice.prototype.renderMCfeedbackDiv = function () {
@@ -301,9 +290,7 @@ MultipleChoice.prototype.restoreMultipleSelect = function () {
                         $(this.optionArray[b].input).attr("checked", "true");
                     }
                 }
-                if (!_this.timed) {
-                    this.compareButton.disabled = false;
-                }
+                this.compareButton.disabled = false;
             } // end for
         } // end if
     } // end if len > 0
@@ -326,9 +313,7 @@ MultipleChoice.prototype.restoreRadio = function () {
                     $(this.optionArray[b].input).attr("checked", "true");
                 }
             }
-            if (!_this.timed) {
-                this.compareButton.disabled = false;
-            }
+            this.compareButton.disabled = false;
         } // end if not null
     } // end if (len > 0)
 };
@@ -342,9 +327,9 @@ MultipleChoice.prototype.processMCMASubmission = function () {
     this.getSubmittedOpts();
     this.scoreMCMASubmission();
     this.populateMCMALocalStorage();
-    this.provideMCMAFeedback();
+    this.renderMCMAFeedBack();
     this.logMCMAsubmission();
-    this.enableMCcomparison();
+    this.compareButton.disabled = false;
 };
 
 MultipleChoice.prototype.getSubmittedOpts = function () {
@@ -395,14 +380,6 @@ MultipleChoice.prototype.logMCMAsubmission = function () {
     //logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
 };
 
-MultipleChoice.prototype.provideMCMAFeedback = function () {
-    if (!this.timed) {
-        this.renderMCMAFeedBack();
-    } else {
-        this.feedBackTimedMC();
-    }
-};
-
 MultipleChoice.prototype.renderMCMAFeedBack = function () {
     var answerStr = "answers";
     var numGiven = this.givenArray.length;
@@ -428,9 +405,9 @@ MultipleChoice.prototype.processMCMFSubmission = function () {
     // Called when the submit button is clicked
     this.getSubmittedOpts();
     this.populateMCMFLocalStorage();
-    this.provideMCMFFeedback();
+    this.renderMCMFFeedback();
     this.logMCMFsubmission();
-    this.enableMCcomparison();
+    this.compareButton.disabled = false;
 };
 
 MultipleChoice.prototype.scoreMCMFSubmission = function () {
@@ -453,30 +430,17 @@ MultipleChoice.prototype.logMCMFsubmission = function () {
     //logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
 };
 
-MultipleChoice.prototype.provideMCMFFeedback = function () {
-    if (!this.timed) {
-        this.renderMCMFFeedback(this.givenArray[0] == this.correctIndexList[0], this.singlefeedback);
-    } else {
-        this.feedBackTimedMC();
-    }
-};
-
-MultipleChoice.prototype.renderMCMFFeedback = function (correct, feedbackText) {
+MultipleChoice.prototype.renderMCMFFeedback = function () {
+    var correct = (this.givenArray[0] == this.correctIndexList[0]);
     if (correct) {
-        $(this.feedBackDiv).html("Correct!    " + feedbackText);
+        $(this.feedBackDiv).html("Correct!    " + this.singlefeedback);
         $(this.feedBackDiv).attr("class", "alert alert-success");
     } else {
         if (feedbackText == null) {
             feedbackText = "";
         }
-        $(this.feedBackDiv).html("Incorrect.    " + feedbackText);
+        $(this.feedBackDiv).html("Incorrect.    " + this.singlefeedback);
         $(this.feedBackDiv).attr("class", "alert alert-danger");
-    }
-};
-
-MultipleChoice.prototype.enableMCcomparison = function () {
-    if (!this.timed) {
-        this.compareButton.disabled = false;
     }
 };
 
@@ -549,49 +513,6 @@ MultipleChoice.prototype.compareAnswers = function () {
     data.div_id = this.divid;
     data.course = eBookConfig.course;
     jQuery.get(eBookConfig.ajaxURL + "getaggregateresults", data, this.compareModal);
-};
-
-MultipleChoice.prototype.checkCorrectTimedMCMA = function () {
-    if (this.correctCount === this.correctList.length && this.correctList.length === this.givenArray.length) {
-        this.correct = true;
-    } else if (this.givenArray.length !== 0) {
-        this.correct = false;
-    }
-    return this.correct;
-};
-
-MultipleChoice.prototype.checkCorrectTimedMCMF = function () {
-    return this.correct;
-};
-
-MultipleChoice.prototype.feedBackTimedMC = function () {
-    var _this = this;
-    for (var i = 0; i < this.indexArray.length; i++) {
-        var tmpindex = this.indexArray[i];
-        var feedbackobj = $("#" + _this.divid + "_eachFeedback_" + tmpindex);
-        $(feedbackobj).text(_this.feedbackList[i]);
-        var tmpid = _this.answerList[tmpindex].id;
-        if (_this.correctList.indexOf(tmpid) >= 0) {
-            $(feedbackobj).attr({"class": "alert alert-success"});
-        } else {
-            $(feedbackobj).attr({"class": "alert alert-danger"});
-        }
-    }
-};
-
-MultipleChoice.prototype.renderTimedIcon = function () {
-    // renders the clock icon on timed components.    The component parameter
-    // is the element that the icon should be appended to.
-    var timeIconDiv = document.createElement("div");
-    var timeIcon = document.createElement("img");
-    $(timeIcon).attr({
-        "src": "../_static/clock.png",
-        "style": "width:15px;height:15px"
-    });
-    timeIconDiv.className = "timeTip";
-    timeIconDiv.title = "";
-    timeIconDiv.appendChild(timeIcon);
-    this.MCContainer.appendChild(timeIconDiv);
 };
 
 module.exports = MultipleChoice;

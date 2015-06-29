@@ -4,7 +4,7 @@
 =====================================
 ===================================*/
 var $ = require("jquery");
-var FITB = require("./fitb.js");
+var FITB = require("./fitbTimed.js");
 var MC = require("./MC.js");
 
 // Timed constructor
@@ -319,7 +319,6 @@ Timed.prototype.tookTimedExam = function () {
     if (len > 0) {
         if (localStorage.getItem(eBookConfig.email + ":timedExam:" + pageName) !== null) {
             _this.taken = 1;
-
         }else {
             _this.taken = 0;
         }
@@ -348,10 +347,10 @@ Timed.prototype.finishAssessment = function () {
 Timed.prototype.submitTimedProblems = function () {
     var _this = this;
     for (var i = 0; i < this.MCMAList.length; i++) {
-        _this.MCMAList[i].processMCMASubmission();
+        _this.MCMAList[i].processTimedMCMASubmission();
     }
     for (var j = 0; j < this.MCMFList.length; j++) {
-        _this.MCMFList[j].processMCMFSubmission();
+        _this.MCMFList[j].processTimedMCMFSubmission();
     }
     for (var k = 0; k < this.FITBArray.length; k++) {
         _this.FITBArray[k].checkFITBStorage();

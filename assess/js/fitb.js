@@ -1,16 +1,18 @@
 var $ = require("jquery");
+var jQuery = $;
 
 // FITB constructor
 function FITB (opts) {
     if (opts) {
-        this.init(opts);
+        this.FITBinit(opts);
     }
 }
+
 /*===================================
 ===    Setting FITB variables     ===
 ===================================*/
 
-FITB.prototype.init = function (opts) {
+FITB.prototype.FITBinit = function (opts) {
     var orig = opts.orig;    // entire <p> element
     this.origElem = orig;
     this.divid = orig.id;
@@ -28,10 +30,6 @@ FITB.prototype.init = function (opts) {
     this.casei = false;                                                             // Case insensitive--boolean
     if ($(this.origElem).data("casei") === true) {
         this.casei = true;
-    }
-    this.timed = false;    // True if this is a child of a timed assessment component
-    if ($(this.origElem).is("[data-timed]")) {
-        this.timed = true;
     }
     this.findQuestion();
     this.populateFeedbackArray();
@@ -83,27 +81,29 @@ FITB.prototype.populateFeedbackArray = function () {        // Populates this.fe
 
 FITB.prototype.createFITBElement = function () {
     this.renderFITBContainer();
+    this.renderFITBQuestion();
     this.renderFITBInput();
-    if (!this.timed) {
-        // don"t render buttons if part of a timed assessment
-        this.renderFITBButtons();
-    }
+    this.renderFITBButtons();
     this.renderFITBFeedbackDiv();
-
     // replaces the intermediate HTML for this component with the rendered HTML of this component
-    $(this.origElem).replaceWith(this.inputDiv);
+    $(this.origElem).replaceWith(this.containerDiv);
 };
 
 FITB.prototype.renderFITBContainer = function () {
     // creates the parent div for the new html
     // puts the question text in the parent div
-    this.inputDiv = document.createElement("div");
-    $(this.inputDiv).text(this.question);
-    $(this.inputDiv).addClass("alert alert-warning");
-    this.inputDiv.id = this.divid;
-    if (this.timed) {
-        this.renderTimedIcon();
-    }
+    this.containerDiv = document.createElement("div");
+    $(this.containerDiv).addClass("alert alert-warning");
+    this.containerDiv.id = this.divid;
+};
+
+FITB.prototype.renderFITBQuestion = function () {
+    // creates the parent div for the new html
+    // puts the question text in the parent div
+    this.questionDiv = document.createElement("div");
+    $(this.questionDiv).text(this.question);
+    this.questionDiv.id = this.divid + "_question";
+    this.containerDiv.appendChild(this.questionDiv);
 };
 
 FITB.prototype.renderFITBInput = function () {
@@ -114,13 +114,14 @@ FITB.prototype.renderFITBInput = function () {
         "id": this.divid + "_blank",
         "class": "form-control"
     });
-    this.inputDiv.appendChild(document.createElement("br"));
-    this.inputDiv.appendChild(this.blank);
-    this.inputDiv.appendChild(document.createElement("br"));
+    this.containerDiv.appendChild(document.createElement("br"));
+    this.containerDiv.appendChild(this.blank);
+    this.containerDiv.appendChild(document.createElement("br"));
 };
 
 FITB.prototype.renderFITBButtons = function () {
     var _this = this;
+    this.buttonDiv = document.createElement("div");
     this.submitButton = document.createElement("button");    // Check me button
     this.submitButton.textContent = "Check Me";
     $(this.submitButton).attr({
@@ -141,16 +142,16 @@ FITB.prototype.renderFITBButtons = function () {
     this.compareButton.onclick = function () {
         _this.compareFITBAnswers();
     };
-    this.inputDiv.appendChild(this.submitButton);
-    this.inputDiv.appendChild(this.compareButton);
-    this.inputDiv.appendChild(document.createElement("div"));
+    this.buttonDiv.appendChild(this.submitButton);
+    this.buttonDiv.appendChild(this.compareButton);
+    this.containerDiv.appendChild(this.buttonDiv);
 };
 
 FITB.prototype.renderFITBFeedbackDiv = function () {
     this.feedBackDiv = document.createElement("div");
     this.feedBackDiv.id = this.divid + "_feedback";
-    this.inputDiv.appendChild(document.createElement("br"));
-    this.inputDiv.appendChild(this.feedBackDiv);
+    this.containerDiv.appendChild(document.createElement("br"));
+    this.containerDiv.appendChild(this.feedBackDiv);
 };
 
 /*==============================
@@ -166,9 +167,7 @@ FITB.prototype.checkPreviousFIB = function () {
         if (ex !== null) {
             var arr = ex.split(";");
             $(this.blank).attr("value", arr[0]);
-            if (!this.timed) {
-                this.compareButton.disabled = false;
-            }
+            this.compareButton.disabled = false;
         } // end if ex not null
     } // end if len > 0
 };
@@ -204,9 +203,7 @@ FITB.prototype.checkFITBStorage = function () {
     this.renderFITBFeedback();
     var answerInfo = "answer:" + given + ":" + (this.isCorrect ? "correct" : "no");
     //logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
-    if (!this.timed) {
-        this.compareButton.disabled = false;
-    }
+    this.compareButton.disabled = false;
 };
 
 FITB.prototype.renderFITBFeedback = function () {
@@ -263,26 +260,6 @@ FITB.prototype.compareFITB = function (data, status, whatever) {
         "</div>";
     var el = $(html);
     el.modal();
-};
-
-FITB.prototype.checkCorrectTimedFITB = function () {
-    // Returns if the question was correct.    Used for timed assessment grading.
-    return this.correct;
-};
-
-FITB.prototype.renderTimedIcon = function () {
-    // renders the clock icon on timed components.    The component parameter
-    // is the element that the icon should be appended to.
-    var timeIconDiv = document.createElement("div");
-    var timeIcon = document.createElement("img");
-    $(timeIcon).attr({
-        "src": "../_static/clock.png",
-        "style": "width:15px;height:15px"
-    });
-    timeIconDiv.className = "timeTip";
-    timeIconDiv.title = "";
-    timeIconDiv.appendChild(timeIcon);
-    this.inputDiv.appendChild(timeIconDiv);
 };
 
 module.exports = FITB;  //export the constructor method
