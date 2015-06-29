@@ -1,6 +1,3 @@
-# Copyright (C) 2011  Bradley N. Miller
-#
-# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -13,113 +10,65 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 __author__ = 'isaiahmayerchak'
-
 
 from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
-from .assessbase import *
-import json
-import random
+
+#add directives/javascript/css
 
 
-class timedNode(nodes.General, nodes.Element):
+class TimedNode(nodes.General, nodes.Element):
     def __init__(self,content):
-        """
-
-        Arguments:
-        - `self`:
-        - `content`:
-        """
-        super(timedNode,self).__init__()
+        super(TimedNode,self).__init__()
         self.timed_options = content
 
 
-def visit_timed_node(self,node):
-    res = ""
-    res = node.template_start % node.timed_options
+def visit_timed_node(self, node):
+#Set options and format templates accordingly
 
+    if 'timelimit' not in node.timed_options:
+        node.timed_options['timelimit'] = '60'
+
+    res = TEMPLATE_START % node.timed_options
     self.body.append(res)
 
 def depart_timed_node(self,node):
-    res = ""
-
-    res = node.template_end % node.timed_options
+#Set options and format templates accordingly
+    res = TEMPLATE_END % node.timed_options
 
     self.body.append(res)
 
+#Templates to be formatted by node options
+TEMPLATE_START = '''
+    <ul data-component="timedAssessment" data-time=%(timelimit)s id="%(divid)s">
+    '''
 
-
-
-class StartTimed(Directive):
-    """Starts a timed block of assessments"""
+TEMPLATE_END = '''</ul>
+    '''
+class TimedDirective(Directive):
     required_arguments = 1
-    optional_arguments = 1
-    has_content = False
+    optional_arguments = 0
     final_argument_whitespace = True
-    option_spec = {'timelimit':directives.unchanged
-    }
-
+    has_content = True
+    option_spec = {"timelimit":directives.positive_int}
 
     def run(self):
         """
             process the timed directive and generate html for output.
             :param self:
             :return:
-            .. startTimed:: qname
-            :timelimit: Number of seconds student has to complete the timed assessment block
+            .. timed:: identifier
+                :timelimit: Number of seconds student has to take the timed assessment
+            ...
             """
-
+        self.assert_has_content() # make sure timed has something in it
 
         self.options['divid'] = self.arguments[0]
 
-        TEMPLATE_START = '''
-            <ul data-component="timedAssessment" data-time="%(timelimit)s" id="%(divid)s">
-            '''
+        timed_node = TimedNode(self.options)
 
-        TEMPLATE_END = '''
-            '''
+        self.state.nested_parse(self.content, self.content_offset, timed_node)
 
-
-        stNode = timedNode(self.options)
-        stNode.template_start = TEMPLATE_START
-        stNode.template_end = TEMPLATE_END
-
-        self.state.nested_parse(self.content, self.content_offset, timedNode)
-
-        return [stNode]
-
-class EndTimed(Directive):
-    """Ends a timed block of assessments"""
-    required_arguments = 0
-    optional_arguments = 0
-    has_content = False
-    final_argument_whitespace = True
-    option_spec = {}
-
-    def run(self):
-        """
-            process the timed directive and generate html for output.
-            :param self:
-            :return:
-            .. endTimed::
-            """
-        TEMPLATE_START = '''
-            '''
-
-        TEMPLATE_END = '''
-            </ul>
-            '''
-
-
-
-
-        etNode = timedNode(self.options)
-        etNode.template_start = TEMPLATE_START
-        etNode.template_end = TEMPLATE_END
-
-        self.state.nested_parse(self.content, self.content_offset, timedNode)
-
-        return [etNode]
+        return [timed_node]
