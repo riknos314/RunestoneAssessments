@@ -235,6 +235,7 @@ FITB.prototype.renderFITBButtons = function () {
         _this.compareFITBAnswers();
     };
     this.inputDiv.appendChild(document.createElement("br"));
+    this.inputDiv.appendChild(document.createElement("br"));
     this.inputDiv.appendChild(this.submitButton);
     this.inputDiv.appendChild(this.compareButton);
     this.inputDiv.appendChild(document.createElement("div"));
@@ -294,12 +295,10 @@ FITB.prototype.evaluateAnswers = function () {
         }
         var patt = RegExp(this.correctAnswerArray[i], modifiers);
         this.isCorrectArray.push(patt.test(given));
-        if (given !== "") {
-            if ($.inArray(false, this.isCorrectArray) < 0) {
-                this.correct = true;
-            } else {
-                this.correct = false;
-            }
+        if ($.inArray(false, this.isCorrectArray) < 0) {
+            this.correct = true;
+        } else {
+            this.correct = false;
         }
         if (!this.isCorrectArray[i]) {
             this.populateDisplayFeed(i, given);
@@ -327,11 +326,21 @@ FITB.prototype.renderFITBFeedback = function () {
     if (this.correct) {
         $(this.feedBackDiv).html("You are Correct!");
         $(this.feedBackDiv).attr("class", "alert alert-success");
+        for (var j = 0; j < this.blankArray.length; j++) {
+            $(this.blankArray[j]).removeClass("input-validation-error");
+        }
     } else {
         if (this.displayFeed === null) {
             this.displayFeed = "";
         }
         $(this.feedBackDiv).html("Incorrect.    ");
+        for (var j = 0; j < this.blankArray.length; j++) {
+            if (!this.isCorrectArray[j]) {
+                $(this.blankArray[j]).addClass("input-validation-error");
+            } else {
+                $(this.blankArray[j]).removeClass("input-validation-error");
+            }
+        }
         for (var i = 0; i < this.displayFeed.length; i++) {
             this.feedBackDiv.innerHTML += this.displayFeed[i];
             this.feedBackDiv.appendChild(document.createElement("br"));

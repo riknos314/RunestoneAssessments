@@ -54,30 +54,15 @@ def visit_fitb_node(self,node):
 
 
 def depart_fitb_node(self,node):
-    fbl = []
     res = ""
-    feedCounter = 0
 
-
-    for k in sorted(node.fitb_options.keys()):
-        if 'feedback' in k:
-            feedCounter += 1
-            node.fitb_options['feedLabel'] = "feedback" + feedCounter
-            pair = eval(node.fitb_options[k])
-            p1 = escapejs(pair[1])
-            p0 = escapejs(pair[0])
-            node.fitb_options['feedExp'] = p0
-            node.fitb_options['feedText'] = p1
-            res += node.template_option % node.fitb_options
-
-    node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
-
+    res += node.template_end % node.fitb_options
     self.body.append(res)
 
 
-class FillInTheBlank(Assessment):
+class FillInTheBlank(Directive):
     required_arguments = 1
-    optional_arguments = 1
+    optional_arguments = 0
     final_argument_whitespace = True
     has_content = True
     option_spec = {'blankid':directives.unchanged,
@@ -93,12 +78,8 @@ class FillInTheBlank(Assessment):
             :return:
             .. fillintheblank:: qname
             :iscode: boolean
-            :correct: somestring
-            :feedback: -- displayed if wrong
-            :feedback: ('.*', 'this is the message')
             :timed: Flag that indicated this is part of a timed block
             :casei: Case insensitive boolean
-            Question text
             ...
             """
 
@@ -110,13 +91,14 @@ class FillInTheBlank(Assessment):
         </p>
             '''
 
-        super(FillInTheBlank,self).run()
+
+        self.options['divid'] = self.arguments[0]
 
         fitbNode = FITBNode(self.options)
         fitbNode.template_start = TEMPLATE_START
         fitbNode.template_end = TEMPLATE_END
 
-        #self.state.nested_parse(self.content, self.content_offset, fitbNode)
+        self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [fitbNode]
 
@@ -137,16 +119,16 @@ class BlankNode(nodes.General, nodes.Element):
         self.blank_options = content
 
 
-def visit_fitb_node(self,node):
+def visit_blank_node(self,node):
     res = ""
 
 
-    res = node.template_start % node.blank_options
+    res = node.template_blank_start % node.blank_options
 
     self.body.append(res)
 
 
-def depart_fitb_node(self,node):
+def depart_blank_node(self,node):
     fbl = []
     res = ""
     feedCounter = 0
@@ -155,10 +137,10 @@ def depart_fitb_node(self,node):
     for k in sorted(node.blank_options.keys()):
         if 'feedback' in k:
             feedCounter += 1
-            node.blank_options['feedLabel'] = "feedback" + feedCounter
+            node.blank_options['feedLabel'] = "feedback" + str(feedCounter)
             pair = eval(node.blank_options[k])
-            p1 = escapejs(pair[1])
-            p0 = escapejs(pair[0])
+            p0 = pair[0]
+            p1 = pair[1]
             node.blank_options['feedExp'] = p0
             node.blank_options['feedText'] = p1
             res += node.template_blank_option % node.blank_options
@@ -166,6 +148,7 @@ def depart_fitb_node(self,node):
     node.blank_options['fbl'] = json.dumps(fbl).replace('"',"'")
 
     res += node.template_option_end % node.blank_options
+
 
     self.body.append(res)
 
@@ -183,7 +166,6 @@ class Blank(Directive):
         'feedback2':directives.unchanged,
         'feedback3':directives.unchanged,
         'feedback4':directives.unchanged,
-        'blankid':directives.unchanged,
     }
 
     def run(self):
@@ -191,36 +173,39 @@ class Blank(Directive):
             process the fillintheblank directive and generate html for output.
             :param self:
             :return:
-            .. fillintheblank:: qname
-            :iscode: boolean
-            :correct: somestring
-            :feedback: -- displayed if wrong
+            .. blank:: qname
+            :correct: regular expression
             :feedback: ('.*', 'this is the message')
-            :timed: Flag that indicated this is part of a timed block
-            :casei: Case insensitive boolean
+
             Question text
             ...
             """
+        self.options['divid'] = self.arguments[0]
+        if self.content:
+            if 'iscode' in self.options:
+                self.options['bodytext'] = '<pre>' + "\n".join(self.content) + '</pre>'
+            else:
+                self.options['bodytext'] = "\n".join(self.content)
+        else:
+            self.options['bodytext'] = '\n'
 
         TEMPLATE_BLANK_START = '''
         <span data-blank>%(bodytext)s<span data-answer id="%(divid)s_answer">%(correct)s</span>
             '''
         TEMPLATE_BLANK_OPTION = '''
-        <span data-feedback="regex" id="%(feedLabel)s">%(feedExp)s</span>
-        <span data-feedback="text" for="%(feedLabel)s">%(feedText)s</span>
+        <span data-feedback="regex" id="%(divid)s_%(feedLabel)s">%(feedExp)s</span>
+        <span data-feedback="text" for="%(divid)s_%(feedLabel)s">%(feedText)s</span>
             '''
         TEMPLATE_BLANK_END = '''
         </span>
         '''
 
 
-        super(Blank,self).run()
 
         blankNode = BlankNode(self.options)
         blankNode.template_blank_start = TEMPLATE_BLANK_START
         blankNode.template_blank_option = TEMPLATE_BLANK_OPTION
-        blankNode.template_option_end = TEMPLATE_OPTION_END
+        blankNode.template_option_end = TEMPLATE_BLANK_END
 
-        #self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [blankNode]
