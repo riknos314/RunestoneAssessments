@@ -16,7 +16,8 @@
     "prettyPrint",
     "LIS",
     "d3",
-    "jsPlumb"
+    "jsPlumb",
+    "eBookConfig"
   ],
 
   /*** Enforcing options ***/

@@ -58,6 +58,7 @@ function FITB (opts) {
 /*===================================
 ===    Setting FITB variables     ===
 ===================================*/
+FITB.prototype = new RunestoneBase();
 
 FITB.prototype.init = function (opts) {
     RunestoneBase.apply(this, arguments);
@@ -149,7 +150,6 @@ FITB.prototype.populateFeedbackArray = function () {        // Populates this.fe
         this.feedbackArray.push(tmpContainArr);
 
     }
-    console.log(this.feedbackArray);
 };
 
 /*===========================================
@@ -180,7 +180,7 @@ FITB.prototype.renderFITBInput = function () {
 
     this.blankArray = [];
     for (var i = 0; i < this.children.length; i++) {
-        var question = document.createElement('span');
+        var question = document.createElement("span");
         question.innerHTML = this.questionArray[i];
         this.inputDiv.appendChild(question);
 
@@ -188,6 +188,7 @@ FITB.prototype.renderFITBInput = function () {
         $(blank).attr({
             "type": "text",
             "id": this.divid + "_blank" + i,
+            "class": "form form-control selectwidthauto"
         });
         this.inputDiv.appendChild(blank);
         this.blankArray.push(blank);
@@ -217,6 +218,7 @@ FITB.prototype.renderFITBButtons = function () {
     this.compareButton.onclick = function () {
         _this.compareFITBAnswers();
     };
+    this.inputDiv.appendChild(document.createElement("br"));
     this.inputDiv.appendChild(this.submitButton);
     this.inputDiv.appendChild(this.compareButton);
     this.inputDiv.appendChild(document.createElement("div"));
@@ -253,8 +255,19 @@ FITB.prototype.checkPreviousFIB = function () {
 };
 
 FITB.prototype.checkFITBStorage = function () {
-    this.isCorrect = true;  // Initialize to true
+    this.isCorrectArray = [];
+    this.displayFeed = [];
     // Starts chain of functions which ends with feedBack() displaying feedback to user
+    this.evaluateAnswers();
+    this.renderFITBFeedback();
+    var answerInfo = "answer:" + this.isCorrectArray + ":" + (this.isCorrect ? "correct" : "no");
+    this.logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
+    if (!this.timed) {
+        this.compareButton.disabled = false;
+    }
+};
+
+FITB.prototype.evaluateAnswers = function () {
     var given_arr = [];
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
@@ -264,44 +277,45 @@ FITB.prototype.checkFITBStorage = function () {
             modifiers = "i";
         }
         var patt = RegExp(this.correctAnswerArray[i], modifiers);
-        if (this.isCorrect) {
-            this.isCorrect = patt.test(given);
-        }
+        this.isCorrectArray.push(patt.test(given));
         if (given !== "") {
-            this.correct = this.isCorrect;
-        }
-        if (!this.isCorrect) {
-            var fbl = this.feedbackArray[i];
-            console.log(fbl);
-            for (var j = 0; j < fbl.length; j++) {
-                patt = RegExp(fbl[j][0]);
-                if (patt.test(given)) {
-                    fbl = fbl[j][1];
-                    break;
-                }
+            if ($.inArray(false, this.isCorrectArray) < 0) {
+                this.correct = true;
+            } else {
+                this.correct = false;
             }
+        }
+        if (!this.isCorrectArray[i]) {
+            this.populateDisplayFeed(i, given);
         }
         // store the answer in local storage
         given_arr.push(given);
     }
     localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", given_arr.join(";"));
-    this.renderFITBFeedback();
-    var answerInfo = "answer:" + given + ":" + (this.isCorrect ? "correct" : "no");
-    logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
-    if (!this.timed) {
-        this.compareButton.disabled = false;
+};
+
+FITB.prototype.populateDisplayFeed = function (index, given) {
+    var fbl = this.feedbackArray[index];
+    for (var j = 0; j < fbl.length; j++) {
+        for (var k = 0; k < fbl[j].length; k++) {
+            var patt = RegExp(fbl[j][k]);
+            if (patt.test(given)) {
+                this.displayFeed.push(fbl[j][1]);
+                return 0;
+            }
+        }
     }
 };
 
 FITB.prototype.renderFITBFeedback = function () {
-    if (this.isCorrect) {
+    if (this.correct) {
         $(this.feedBackDiv).html("You are Correct!");
         $(this.feedBackDiv).attr("class", "alert alert-success");
     } else {
-        if (this.feedbackArray === null) {
-            this.feedbackArray = "";
+        if (this.displayFeed === null) {
+            this.displayFeed = "";
         }
-        $(this.feedBackDiv).html("Incorrect.    " + this.feedbackArray);
+        $(this.feedBackDiv).html("Incorrect.    " + this.displayFeed);
         $(this.feedBackDiv).attr("class", "alert alert-danger");
     }
 };
