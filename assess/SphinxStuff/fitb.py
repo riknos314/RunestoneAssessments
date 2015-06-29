@@ -54,41 +54,18 @@ def visit_fitb_node(self,node):
 
 
 def depart_fitb_node(self,node):
-    fbl = []
     res = ""
-    feedCounter = 0
 
-
-    for k in sorted(node.fitb_options.keys()):
-        if 'feedback' in k:
-            feedCounter += 1
-            node.fitb_options['feedLabel'] = "feedback" + feedCounter
-            pair = eval(node.fitb_options[k])
-            p1 = escapejs(pair[1])
-            #newpair = (pair[0],p1)
-            #fbl.append(newpair)
-            p0 = escapejs(pair[0])
-            node.fitb_options['feedExp'] = p0
-            node.fitb_options['feedText'] = p1
-            res += node.template_option % node.fitb_options
-
-    node.fitb_options['fbl'] = json.dumps(fbl).replace('"',"'")
-
+    res += node.template_end % node.fitb_options
     self.body.append(res)
 
 
-class FillInTheBlank(Assessment):
+class FillInTheBlank(Directive):
     required_arguments = 1
-    optional_arguments = 1
+    optional_arguments = 0
     final_argument_whitespace = True
     has_content = True
-    option_spec = {'correct':directives.unchanged,
-        'feedback':directives.unchanged,
-        'feedback1':directives.unchanged,
-        'feedback2':directives.unchanged,
-        'feedback3':directives.unchanged,
-        'feedback4':directives.unchanged,
-        'blankid':directives.unchanged,
+    option_spec = {'blankid':directives.unchanged,
         'timed':directives.flag,
         'iscode':directives.flag,
         'casei':directives.flag  # case insensitive matching
@@ -101,36 +78,134 @@ class FillInTheBlank(Assessment):
             :return:
             .. fillintheblank:: qname
             :iscode: boolean
-            :correct: somestring
-            :feedback: -- displayed if wrong
-            :feedback: ('.*', 'this is the message')
             :timed: Flag that indicated this is part of a timed block
             :casei: Case insensitive boolean
-            Question text
             ...
             """
 
         TEMPLATE_START = '''
-        <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s" %(timed)s>%(bodytext)s
-        <span data-answer id="%(divid)s_answer">%(correct)s</span>
-            '''
-
-        TEMPLATE_OPTION = '''
-            <span data-feedback="regex" id="%(feedLabel)s">%(feedExp)s</span>
-            <span data-feedback="text" for="%(feedLabel)s">%(feedText)s</span>
+        <p data-component="fillintheblank" data-casei="%(casei)s" id="%(divid)s" %(timed)s>
             '''
 
         TEMPLATE_END = '''
         </p>
             '''
 
-        super(FillInTheBlank,self).run()
+
+        self.options['divid'] = self.arguments[0]
 
         fitbNode = FITBNode(self.options)
         fitbNode.template_start = TEMPLATE_START
-        fitbNode.template_option = TEMPLATE_OPTION
         fitbNode.template_end = TEMPLATE_END
 
         self.state.nested_parse(self.content, self.content_offset, fitbNode)
 
         return [fitbNode]
+
+
+
+
+
+
+class BlankNode(nodes.General, nodes.Element):
+    def __init__(self,content):
+        """
+
+        Arguments:
+        - `self`:
+        - `content`:
+        """
+        super(BlankNode,self).__init__()
+        self.blank_options = content
+
+
+def visit_blank_node(self,node):
+    res = ""
+
+
+    res = node.template_blank_start % node.blank_options
+
+    self.body.append(res)
+
+
+def depart_blank_node(self,node):
+    fbl = []
+    res = ""
+    feedCounter = 0
+
+
+    for k in sorted(node.blank_options.keys()):
+        if 'feedback' in k:
+            feedCounter += 1
+            node.blank_options['feedLabel'] = "feedback" + str(feedCounter)
+            pair = eval(node.blank_options[k])
+            p0 = pair[0]
+            p1 = pair[1]
+            node.blank_options['feedExp'] = p0
+            node.blank_options['feedText'] = p1
+            res += node.template_blank_option % node.blank_options
+
+    node.blank_options['fbl'] = json.dumps(fbl).replace('"',"'")
+
+    res += node.template_option_end % node.blank_options
+
+
+    self.body.append(res)
+
+
+
+
+class Blank(Directive):
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = True
+    has_content = True
+    option_spec = {'correct':directives.unchanged,
+        'feedback':directives.unchanged,
+        'feedback1':directives.unchanged,
+        'feedback2':directives.unchanged,
+        'feedback3':directives.unchanged,
+        'feedback4':directives.unchanged,
+    }
+
+    def run(self):
+        """
+            process the fillintheblank directive and generate html for output.
+            :param self:
+            :return:
+            .. blank:: qname
+            :correct: regular expression
+            :feedback: ('.*', 'this is the message')
+
+            Question text
+            ...
+            """
+        self.options['divid'] = self.arguments[0]
+        if self.content:
+            if 'iscode' in self.options:
+                self.options['bodytext'] = '<pre>' + "\n".join(self.content) + '</pre>'
+            else:
+                self.options['bodytext'] = "\n".join(self.content)
+        else:
+            self.options['bodytext'] = '\n'
+
+        TEMPLATE_BLANK_START = '''
+        <span data-blank>%(bodytext)s<span data-answer id="%(divid)s_answer">%(correct)s</span>
+            '''
+        TEMPLATE_BLANK_OPTION = '''
+        <span data-feedback="regex" id="%(divid)s_%(feedLabel)s">%(feedExp)s</span>
+        <span data-feedback="text" for="%(divid)s_%(feedLabel)s">%(feedText)s</span>
+            '''
+        TEMPLATE_BLANK_END = '''
+        </span>
+        '''
+
+
+
+        blankNode = BlankNode(self.options)
+        blankNode.template_blank_start = TEMPLATE_BLANK_START
+        blankNode.template_blank_option = TEMPLATE_BLANK_OPTION
+        blankNode.template_option_end = TEMPLATE_BLANK_END
+
+
+        return [blankNode]
