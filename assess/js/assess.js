@@ -62,7 +62,7 @@ var renderTimedIcon = function (component) {
 == Begin code for the Fill In The Blank component ==
 ==================================================*/
 
-var FITBList = {};    // Object containing all instances of FITB that aren"t a child of a timed assessment.
+var FITBList = {};    // Object containing all instances of FITB that aren't a child of a timed assessment.
 
 // FITB constructor
 function FITB (opts) {
@@ -70,28 +70,29 @@ function FITB (opts) {
         this.init(opts);
     }
 }
-FITB.prototype = new RunestoneBase();
 /*===================================
 ===    Setting FITB variables     ===
 ===================================*/
+FITB.prototype = new RunestoneBase();
 
 FITB.prototype.init = function (opts) {
     RunestoneBase.apply(this, arguments);
     var orig = opts.orig;    // entire <p> element
     this.origElem = orig;
     this.divid = orig.id;
-    this.question = null;
-    this.correct = null;
-    this.feedbackArray = [];// Array of arrays--each inside array contains 2 elements: the regular expression, then text
-    this.children = this.origElem.childNodes; // this contains all of the child elements of the entire tag...
-    // ... used for ensuring that only things that are part of this instance are being touchedh
-    this.correctAnswer = null;                 // Correct answer--is a regular expression
-    for (var i = 0; i < this.children.length; i++) {
-        if ($(this.children[i]).is("[data-answer]")) {
-            this.correctAnswer = $([this.children[i]]).text();
-        }
-    }
-    this.casei = false;                                                             // Case insensitive--boolean
+    this.questionArray = [];
+    this.correct = [];
+    this.feedbackArray = [];
+    /* this.feedbackArray is an array of array of arrays--each outside element is a blank. Each middle element is a different "incorrect" feedback
+    that is tailored for how the question is incorrectly answered. Each inside array contains 2 elements: the regular expression, then text */
+    this.children = [];   // this contains all of the child elements of the entire tag...
+    this.correctAnswerArray = [];   // This array contains the regular expressions of the correct answers
+
+    this.adoptChildren();   // Populates this.children
+    this.populateCorrectAnswerArray();
+    this.populateQuestionArray();
+
+    this.casei = false;   // Case insensitive--boolean
     if ($(this.origElem).data("casei") === true) {
         this.casei = true;
     }
@@ -99,7 +100,6 @@ FITB.prototype.init = function (opts) {
     if ($(this.origElem).is("[data-timed]")) {
         this.timed = true;
     }
-    this.findQuestion();
     this.populateFeedbackArray();
     this.createFITBElement();
     this.checkPreviousFIB();
@@ -109,37 +109,62 @@ FITB.prototype.init = function (opts) {
 ==== Functions parsing variables  ====
 ====   out of intermediate HTML   ====
 ====================================*/
-
-FITB.prototype.findQuestion = function () {         // Gets question text and puts it into this.question
-    var firstAnswerId;
-    for (var i = 0; i < this.children.length; i++) {
-        if ($(this.children[i]).is("[data-answer]")) {
-            firstAnswerId = this.children[i].id;
-            break;
+FITB.prototype.adoptChildren = function () {
+    var children = this.origElem.childNodes;
+    for (var i = 0; i < this.origElem.childNodes.length; i++) {
+        if ($(this.origElem.childNodes[i]).is("[data-blank]")) {
+            this.children.push(this.origElem.childNodes[i]);
         }
     }
-
-    var delimiter = document.getElementById(firstAnswerId).outerHTML;
-    var fulltext = $(this.origElem).html();
-    var temp = fulltext.split(delimiter);
-    this.question = temp[0];
 };
 
-FITB.prototype.populateFeedbackArray = function () {        // Populates this.feedbackArray
-    var _this = this;
-    var AnswerNodeList = [];
+FITB.prototype.populateCorrectAnswerArray = function () {
     for (var i = 0; i < this.children.length; i++) {
-        if ($(this.children[i]).is("[data-feedback=text]")) {
-            AnswerNodeList.push(this.children[i]);
+        for (var j=0; j < this.children[i].childNodes.length; j++) {
+            if ($(this.children[i].childNodes[j]).is("[data-answer]")) {
+                this.correctAnswerArray.push($([this.children[i].childNodes[j]]).text().replace(/\\\\/g,"\\"));
+            }
         }
     }
-    for (var j = 0; j < AnswerNodeList.length; j++) {
-        var tempArr = [];
-        var tempFor = $(AnswerNodeList[j]).attr("for");
-        var tempRegEx = document.getElementById(tempFor).innerHTML;
-        tempArr.push(tempRegEx);
-        tempArr.push(AnswerNodeList[j].innerHTML);
-        _this.feedbackArray.push(tempArr);
+};
+FITB.prototype.populateQuestionArray = function () {
+    for (var i = 0; i < this.children.length; i++) {
+        var firstAnswerId = null;
+        for (var j = 0; j < this.children[i].childNodes.length; j++) {
+            if ($(this.children[i].childNodes[j]).is("[data-answer]")) {
+                firstAnswerId = this.children[i].childNodes[j].id;
+
+                var delimiter = document.getElementById(firstAnswerId).outerHTML;
+                var fulltext = $(this.children[i]).html();
+                var temp = fulltext.split(delimiter);
+                this.questionArray.push(temp[0]);
+                break;
+            }
+        }
+    }
+};
+
+FITB.prototype.populateFeedbackArray = function () {
+    for (var i = 0; i < this.children.length; i++) {
+        var AnswerNodeList = [];
+        var tmpContainArr = [];
+        for (var j = 0; j < this.children[i].childNodes.length; j++) {
+            if ($(this.children[i].childNodes[j]).is("[data-feedback=text]")) {
+
+                AnswerNodeList.push(this.children[i].childNodes[j]);
+            }
+        }
+
+        for (var j = 0; j < AnswerNodeList.length; j++) {
+            var tempArr = [];
+            var tempFor = $(AnswerNodeList[j]).attr("for");
+            var tempRegEx = document.getElementById(tempFor).innerHTML.replace(/\\\\/g,"\\");
+            tempArr.push(tempRegEx);
+            tempArr.push(AnswerNodeList[j].innerHTML);
+            tmpContainArr.push(tempArr);
+        }
+        this.feedbackArray.push(tmpContainArr);
+
     }
 };
 
@@ -148,10 +173,9 @@ FITB.prototype.populateFeedbackArray = function () {        // Populates this.fe
 ===========================================*/
 
 FITB.prototype.createFITBElement = function () {
-    this.renderFITBContainer();
     this.renderFITBInput();
     if (!this.timed) {
-        // don"t render buttons if part of a timed assessment
+        // don't render buttons if part of a timed assessment
         this.renderFITBButtons();
     }
     this.renderFITBFeedbackDiv();
@@ -160,29 +184,32 @@ FITB.prototype.createFITBElement = function () {
     $(this.origElem).replaceWith(this.inputDiv);
 };
 
-FITB.prototype.renderFITBContainer = function () {
-    // creates the parent div for the new html
-    // puts the question text in the parent div
+
+FITB.prototype.renderFITBInput = function () {
+    // creates the blank and appends it to the parent div
     this.inputDiv = document.createElement("div");
-    $(this.inputDiv).text(this.question);
     $(this.inputDiv).addClass("alert alert-warning");
     this.inputDiv.id = this.divid;
     if (this.timed) {
         renderTimedIcon(this.inputDiv);
     }
-};
 
-FITB.prototype.renderFITBInput = function () {
-    // creates the blank and appends it to the parent div
-    this.blank = document.createElement("input");
-    $(this.blank).attr({
-        "type": "text",
-        "id": this.divid + "_blank",
-        "class": "form-control"
-    });
-    this.inputDiv.appendChild(document.createElement("br"));
-    this.inputDiv.appendChild(this.blank);
-    this.inputDiv.appendChild(document.createElement("br"));
+    this.blankArray = [];
+    for (var i = 0; i < this.children.length; i++) {
+        var question = document.createElement("span");
+        question.innerHTML = this.questionArray[i];
+        this.inputDiv.appendChild(question);
+
+        var blank = document.createElement("input");
+        $(blank).attr({
+            "type": "text",
+            "id": this.divid + "_blank" + i,
+            "class": "form form-control selectwidthauto"
+        });
+        this.inputDiv.appendChild(blank);
+        this.blankArray.push(blank);
+    }
+
 };
 
 FITB.prototype.renderFITBButtons = function () {
@@ -207,6 +234,8 @@ FITB.prototype.renderFITBButtons = function () {
     this.compareButton.onclick = function () {
         _this.compareFITBAnswers();
     };
+    this.inputDiv.appendChild(document.createElement("br"));
+    this.inputDiv.appendChild(document.createElement("br"));
     this.inputDiv.appendChild(this.submitButton);
     this.inputDiv.appendChild(this.compareButton);
     this.inputDiv.appendChild(document.createElement("div"));
@@ -228,62 +257,95 @@ FITB.prototype.checkPreviousFIB = function () {
     // which were stored into local storage
     var len = localStorage.length;
     if (len > 0) {
-        var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid);
+        var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid + "-given");
         if (ex !== null) {
             var arr = ex.split(";");
-            $(this.blank).attr("value", arr[0]);
-            if (!this.timed) {
-                this.compareButton.disabled = false;
+            for (var i = 0; i < this.blankArray.length; i++) {
+                $(this.blankArray[i]).attr("value", arr[i]);
+                if (!this.timed) {
+                    this.compareButton.disabled = false;
+                }
             }
+
         } // end if ex not null
     } // end if len > 0
 };
 
 FITB.prototype.checkFITBStorage = function () {
+    this.isCorrectArray = [];
+    this.displayFeed = [];
     // Starts chain of functions which ends with feedBack() displaying feedback to user
-    var given = this.blank.value;
-
-    var modifiers = "";
-    if (this.casei) {
-        modifiers = "i";
-    }
-    var patt = RegExp(this.correctAnswer, modifiers);
-    this.isCorrect = patt.test(given);
-    if (given !== "") {
-        this.correct = this.isCorrect;
-    }
-    if (!this.isCorrect) {
-        var fbl = this.feedbackArray;
-        for (var i = 0; i < fbl.length; i++) {
-            patt = RegExp(fbl[i][0]);
-            if (patt.test(given)) {
-                fbl = fbl[i][1];
-                break;
-            }
-        }
-    }
-    // store the answer in local storage
-    var storage_arr = [];
-    storage_arr.push(given);
-    storage_arr.push(this.correctAnswer);
-    localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
+	this.evaluateAnswers();
     this.renderFITBFeedback();
-    var answerInfo = "answer:" + given + ":" + (this.isCorrect ? "correct" : "no");
+    var answerInfo = "answer:" + this.given_arr + ":" + (this.isCorrect ? "correct" : "no");
     logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
     if (!this.timed) {
         this.compareButton.disabled = false;
     }
 };
 
+FITB.prototype.evaluateAnswers = function () {
+	this.given_arr = [];
+    for (var i = 0; i < this.children.length; i++) {
+        var given = this.blankArray[i].value;
+
+        var modifiers = "";
+        if (this.casei) {
+            modifiers = "i";
+        }
+
+        var patt = RegExp(this.correctAnswerArray[i], modifiers);
+        this.isCorrectArray.push(patt.test(given));
+        if ($.inArray(false, this.isCorrectArray) < 0) {
+            this.correct = true;
+        } else {
+            this.correct = false;
+        }
+        if (!this.isCorrectArray[i]) {
+            this.populateDisplayFeed(i, given);
+        }
+        // store the answer in local storage
+        this.given_arr.push(given);
+    }
+    localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", this.given_arr.join(";"));
+};
+
+FITB.prototype.populateDisplayFeed = function (index, given) {
+    var fbl = this.feedbackArray[index];
+    for (var j = 0; j < fbl.length; j++) {
+        for (var k = 0; k < fbl[j].length; k++) {
+            var patt = RegExp(fbl[j][k]);
+            if (patt.test(given)) {
+                this.displayFeed.push(fbl[j][1]);
+                return 0;
+            }
+        }
+    }
+};
+
 FITB.prototype.renderFITBFeedback = function () {
-    if (this.isCorrect) {
+    if (this.correct) {
         $(this.feedBackDiv).html("You are Correct!");
         $(this.feedBackDiv).attr("class", "alert alert-success");
-    } else {
-        if (this.feedbackArray === null) {
-            this.feedbackArray = "";
+        for (var j = 0; j < this.blankArray.length; j++) {
+            $(this.blankArray[j]).removeClass("input-validation-error");
         }
-        $(this.feedBackDiv).html("Incorrect.    " + this.feedbackArray);
+    } else {
+        if (this.displayFeed === null) {
+            this.displayFeed = "";
+        }
+        $(this.feedBackDiv).html("Incorrect.    ");
+        for (var j = 0; j < this.blankArray.length; j++) {
+            if (!this.isCorrectArray[j]) {
+                $(this.blankArray[j]).addClass("input-validation-error");
+            } else {
+                $(this.blankArray[j]).removeClass("input-validation-error");
+            }
+        }
+        for (var i = 0; i < this.displayFeed.length; i++) {
+            this.feedBackDiv.innerHTML += this.displayFeed[i];
+            this.feedBackDiv.appendChild(document.createElement("br"));
+        }
         $(this.feedBackDiv).attr("class", "alert alert-danger");
     }
 };
@@ -299,7 +361,7 @@ FITB.prototype.compareFITBAnswers = function () {             // Called by compa
     jQuery.get(eBookConfig.ajaxURL + "gettop10Answers", data, this.compareFITB);
 };
 
-FITB.prototype.compareFITB = function (data, status, whatever) {
+FITB.prototype.compareFITB = function (data, status, whatever) {   // Creates a modal dialog
     var answers = eval(data)[0];
     var misc = eval(data)[1];
 
@@ -335,6 +397,7 @@ FITB.prototype.checkCorrectTimedFITB = function () {
     // Returns if the question was correct.    Used for timed assessment grading.
     return this.correct;
 };
+
 
 /*=======================================
 =========================================
@@ -543,6 +606,7 @@ MultipleChoice.prototype.renderMCFormOpts = function () {
         if (this.timed) {
             var feedBackEach = document.createElement("div");
             feedBackEach.id = this.divid + "_eachFeedback_" + k;
+			feedBackEach.classList.add("eachFeedback");
             this.optsForm.appendChild(feedBackEach);
         }
     }
@@ -946,10 +1010,10 @@ Timed.prototype.init = function (opts) {
     this.children = this.origElem.childNodes;
 
     this.timeLimit = 0;
-    this.limitedTime = true;
-    if (isNaN($(this.origElem).data("time"))) {
+    this.limitedTime = false;
+    if (!isNaN($(this.origElem).data("time"))) {
         this.timeLimit = parseInt($(this.origElem).data("time"), 10) * 60; // time in seconds to complete the exam
-        this.limitedTime = false;
+        this.limitedTime = true;
     }
     this.showFeedback = true;
     if ($(this.origElem).is("[data-no-feedback]")) {
@@ -1067,9 +1131,10 @@ Timed.prototype.renderSubmitButton = function () {
 };
 
 Timed.prototype.renderFeedbackContainer = function () {
-    this.score = document.createElement("P");
-    this.score.id = this.divid + "results";
-    this.timedDiv.appendChild(this.score);
+    this.scoreDiv = document.createElement("P");
+    this.scoreDiv.id = this.divid + "results";
+    this.scoreDiv.style.display = "none";
+    this.timedDiv.appendChild(this.scoreDiv);
 };
 
 Timed.prototype.renderMCMFquestions = function () {
@@ -1191,10 +1256,10 @@ Timed.prototype.increment = function () { // increments the timer
     if (this.running === 1 && !this.taken) {
         var _this = this;
         setTimeout(function () {
-            if (this.limitedTime) {  // If there's a time limit, count down to 0
-                this.timeLimit--;
+            if (_this.limitedTime) {  // If there's a time limit, count down to 0
+                _this.timeLimit--;
             } else {
-                this.timeLimit++; // Else count up to keep track of how long it took to complete
+                _this.timeLimit++; // Else count up to keep track of how long it took to complete
             }
             _this.showTime(_this.timeLimit);
             if (_this.timeLimit > 0) {
@@ -1236,7 +1301,7 @@ Timed.prototype.tookTimedExam = function () {
         "border-radius": "25px"
     });
 
-    $(this.score).css({
+    $(this.scoreDiv).css({
         "width": "50%",
         "margin": "0 auto",
         "background-color": "#DFF0D8",
@@ -1287,33 +1352,22 @@ Timed.prototype.finishAssessment = function () {
 
 Timed.prototype.submitTimedProblems = function () {
     var _this = this;
+	if (!this.showFeedback) {
+		this.hideTimedFeedback();
+	}
     for (var i = 0; i < this.MCMAList.length; i++) {
-        if (!this.showFeedback) {
-            var feedbackElems = _this.MCMAList[i].querySelectorAll('[id*="eachFeedback"]');
-            for (var l = 0; l < feedbackElems.length; l++) {
-                feedbackElems[l].style.display = "none";
-            }
-        }
         _this.MCMAList[i].processMCMASubmission();
     }
     for (var j = 0; j < this.MCMFList.length; j++) {
-        if (!this.showFeedback) {
-            var feedbackElems = _this.MCMFList[j].querySelectorAll('[id*="eachFeedback"]');
-            for (var l = 0; l < feedbackElems.length; l++) {
-                feedbackElems[l].style.display = "none";
-            }
-        }
         _this.MCMFList[j].processMCMFSubmission();
     }
     for (var k = 0; k < this.FITBArray.length; k++) {
-        if (!this.showFeedback) {
-            var feedbackElems = _this.MCMAList[k].querySelectorAll('[id*="eachFeedback"]');
-            for (var l = 0; l < feedbackElems.length; l++) {
-                feedbackElems[l].style.display = "none";
-            }
-        }
         _this.FITBArray[k].checkFITBStorage();
     }
+};
+
+Timed.prototype.hideTimedFeedback = function () {
+	$(".eachFeedback").css("display", "none");
 };
 
 Timed.prototype.checkScore = function () {
@@ -1357,10 +1411,14 @@ Timed.prototype.checkScore = function () {
 };
 
 Timed.prototype.displayScore = function () {
-    var scoreString = "Num Correct: " + this.score + " Num Wrong: " + this.incorrect + " Num Skipped: " + this.skipped + "\n";
-    var numQuestions = this.MCMAList.length + this.MCMFList.length + this.FITBArray.length;
-    var percentCorrect = (this.score / numQuestions) * 100;
-    scoreString += "Percent Correct: " + percentCorrect + "%";
+    if (this.showResults) {
+        var scoreString = "Num Correct: " + this.score + " Num Wrong: " + this.incorrect + " Num Skipped: " + this.skipped;
+        var numQuestions = this.MCMAList.length + this.MCMFList.length + this.FITBArray.length;
+        var percentCorrect = (this.score / numQuestions) * 100;
+        scoreString += "    Percent Correct: " + percentCorrect + "%";
+        $(this.scoreDiv).text(scoreString);
+        this.scoreDiv.style.display = "block";
+    }
 }
 
 /*=======================================================
