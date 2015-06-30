@@ -269,7 +269,7 @@ FITB.prototype.checkFITBStorage = function () {
     localStorage.setItem(eBookConfig.email + ":" + this.divid, storage_arr.join(";"));
     this.renderFITBFeedback();
     var answerInfo = "answer:" + given + ":" + (this.isCorrect ? "correct" : "no");
-    this.logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
+    logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
     if (!this.timed) {
         this.compareButton.disabled = false;
     }
@@ -730,7 +730,7 @@ MultipleChoice.prototype.populateMCMALocalStorage = function () {
 
 MultipleChoice.prototype.logMCMAsubmission = function () {
     var answerInfo = "answer:" + this.givenlog.substring(0, this.givenlog.length - 1) + ":" + (this.correctCount == this.correctList.length ? "correct" : "no");
-    this.logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
+    logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
 };
 
 MultipleChoice.prototype.provideMCMAFeedback = function () {
@@ -788,7 +788,7 @@ MultipleChoice.prototype.populateMCMFLocalStorage = function () {
 
 MultipleChoice.prototype.logMCMFsubmission = function () {
     var answerInfo = "answer:" + this.givenArray[0] + ":" + (this.givenArray[0] == this.correctIndexList[0] ? "correct" : "no");
-    this.logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
+    logBookEvent({"event": "mChoice", "act": answerInfo, "div_id": this.divid});
 };
 
 MultipleChoice.prototype.provideMCMFFeedback = function () {
@@ -1129,7 +1129,7 @@ Timed.prototype.startAssessment = function () {
             $(this.timedDiv).show();
             _this.increment();
             var name = _this.getPageName();
-            this.logBookEvent({"event": "timedExam", "act": "start", "div_id": name});
+            logBookEvent({"event": "timedExam", "act": "start", "div_id": name});
             localStorage.setItem(eBookConfig.email + ":timedExam:" + name, "started");
         }
     } else {
@@ -1384,7 +1384,6 @@ $(document).ready(function () {
     });
 
     $("[data-component=multiplechoice]").each(function (index) {    // MC
-        console.log("Hi");
         if ($.inArray(this.id, TimedChildren) < 0) { // If the MC element exists within a timed component, don"t render it here
             mcList[this.id] = new MultipleChoice({"orig": this});
         }
