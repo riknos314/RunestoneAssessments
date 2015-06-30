@@ -944,7 +944,22 @@ Timed.prototype.init = function (opts) {
     this.origElem = orig; // the entire element of this timed assessment and all it"s children
     this.divid = orig.id;
     this.children = this.origElem.childNodes;
-    this.timeLimit = parseInt($(this.origElem).data("time"), 10) * 60; // time in seconds to complete the exam
+
+    this.timeLimit = 0;
+    this.limitedTime = true;
+    if (isNaN($(this.origElem).data("time"))) {
+        this.timeLimit = parseInt($(this.origElem).data("time"), 10) * 60; // time in seconds to complete the exam
+        this.limitedTime = false;
+    }
+    this.showFeedback = true;
+    if ($(this.origElem).is("[data-no-feedback]")) {
+        this.showFeedback = false;
+    }
+    this.showResults = true;
+    if ($(this.origElem).is("[data-no-result]")) {
+        this.showResults = false;
+    }
+
     this.running = 0;
     this.paused = 0;
     this.done = 0;
@@ -1176,7 +1191,11 @@ Timed.prototype.increment = function () { // increments the timer
     if (this.running === 1 && !this.taken) {
         var _this = this;
         setTimeout(function () {
-            _this.timeLimit--;
+            if (this.limitedTime) {  // If there's a time limit, count down to 0
+                this.timeLimit--;
+            } else {
+                this.timeLimit++; // Else count up to keep track of how long it took to complete
+            }
             _this.showTime(_this.timeLimit);
             if (_this.timeLimit > 0) {
                 _this.increment();
@@ -1261,6 +1280,7 @@ Timed.prototype.finishAssessment = function () {
     this.taken = 1;
     this.submitTimedProblems();
     this.checkScore();
+    this.displayScore();
     $(this.pauseBtn).attr("disabled", true);
     this.finishButton.disabled = true;
 };
@@ -1268,12 +1288,30 @@ Timed.prototype.finishAssessment = function () {
 Timed.prototype.submitTimedProblems = function () {
     var _this = this;
     for (var i = 0; i < this.MCMAList.length; i++) {
+        if (!this.showFeedback) {
+            var feedbackElems = _this.MCMAList[i].querySelectorAll('[id*="eachFeedback"]');
+            for (var l = 0; l < feedbackElems.length; l++) {
+                feedbackElems[l].style.display = "none";
+            }
+        }
         _this.MCMAList[i].processMCMASubmission();
     }
     for (var j = 0; j < this.MCMFList.length; j++) {
+        if (!this.showFeedback) {
+            var feedbackElems = _this.MCMFList[j].querySelectorAll('[id*="eachFeedback"]');
+            for (var l = 0; l < feedbackElems.length; l++) {
+                feedbackElems[l].style.display = "none";
+            }
+        }
         _this.MCMFList[j].processMCMFSubmission();
     }
     for (var k = 0; k < this.FITBArray.length; k++) {
+        if (!this.showFeedback) {
+            var feedbackElems = _this.MCMAList[k].querySelectorAll('[id*="eachFeedback"]');
+            for (var l = 0; l < feedbackElems.length; l++) {
+                feedbackElems[l].style.display = "none";
+            }
+        }
         _this.FITBArray[k].checkFITBStorage();
     }
 };
@@ -1317,6 +1355,13 @@ Timed.prototype.checkScore = function () {
         }
     }
 };
+
+Timed.prototype.displayScore = function () {
+    var scoreString = "Num Correct: " + this.score + " Num Wrong: " + this.incorrect + " Num Skipped: " + this.skipped + "\n";
+    var numQuestions = this.MCMAList.length + this.MCMFList.length + this.FITBArray.length;
+    var percentCorrect = (this.score / numQuestions) * 100;
+    scoreString += "Percent Correct: " + percentCorrect + "%";
+}
 
 /*=======================================================
 === Function that calls the constructors on page load ===
