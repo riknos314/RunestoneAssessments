@@ -122,7 +122,7 @@ FITB.prototype.populateCorrectAnswerArray = function () {
     for (var i = 0; i < this.children.length; i++) {
         for (var j=0; j < this.children[i].childNodes.length; j++) {
             if ($(this.children[i].childNodes[j]).is("[data-answer]")) {
-                this.correctAnswerArray.push($([this.children[i].childNodes[j]]).text());
+                this.correctAnswerArray.push($([this.children[i].childNodes[j]]).text().replace(/\\\\/g,"\\"));
             }
         }
     }
@@ -158,7 +158,7 @@ FITB.prototype.populateFeedbackArray = function () {
         for (var j = 0; j < AnswerNodeList.length; j++) {
             var tempArr = [];
             var tempFor = $(AnswerNodeList[j]).attr("for");
-            var tempRegEx = document.getElementById(tempFor).innerHTML;
+            var tempRegEx = document.getElementById(tempFor).innerHTML.replace(/\\\\/g,"\\");
             tempArr.push(tempRegEx);
             tempArr.push(AnswerNodeList[j].innerHTML);
             tmpContainArr.push(tempArr);
@@ -278,7 +278,7 @@ FITB.prototype.checkFITBStorage = function () {
     this.evaluateAnswers();
     this.renderFITBFeedback();
     var answerInfo = "answer:" + this.given_arr + ":" + (this.isCorrect ? "correct" : "no");
-    this.logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
+    logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
     if (!this.timed) {
         this.compareButton.disabled = false;
     }
@@ -293,6 +293,7 @@ FITB.prototype.evaluateAnswers = function () {
         if (this.casei) {
             modifiers = "i";
         }
+
         var patt = RegExp(this.correctAnswerArray[i], modifiers);
         this.isCorrectArray.push(patt.test(given));
         if ($.inArray(false, this.isCorrectArray) < 0) {
