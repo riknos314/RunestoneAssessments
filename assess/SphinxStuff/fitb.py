@@ -161,7 +161,6 @@ class Blank(Directive):
     final_argument_whitespace = True
     has_content = True
     option_spec = {'correct':directives.unchanged,
-        'feedback':directives.unchanged,
         'feedback1':directives.unchanged,
         'feedback2':directives.unchanged,
         'feedback3':directives.unchanged,
@@ -175,7 +174,12 @@ class Blank(Directive):
             :return:
             .. blank:: qname
             :correct: regular expression
-            :feedback: ('.*', 'this is the message')
+            :feedback1: ('.*', 'this is the message')
+            :feedback2: (RegEx, MessageString)
+            :feedback3: (RegEx, MessageString)
+            :feedback4: (RegEx, MessageString)
+
+
 
             Question text
             ...

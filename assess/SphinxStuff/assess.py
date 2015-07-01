@@ -31,7 +31,8 @@ def setup(app):
     app.add_directive('addbutton', AddButton)
     app.add_directive('qnum', QuestionNumber)
     app.add_directive('timed', TimedDirective)
-    app.add_javascript('newfitb.js')
+
+    app.add_stylesheet('fitb.css')
     app.add_javascript('assess.js')
 
     app.add_node(TimedNode, html=(visit_timed_node, depart_timed_node))

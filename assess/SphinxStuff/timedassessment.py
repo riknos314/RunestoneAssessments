@@ -29,7 +29,19 @@ def visit_timed_node(self, node):
 #Set options and format templates accordingly
 
     if 'timelimit' not in node.timed_options:
-        node.timed_options['timelimit'] = '60'
+        node.timed_options['timelimit'] = ''
+    else:
+        node.timed_options['timelimit'] = 'data-time=' + str(node.timed_options['timelimit'])
+
+    if 'noresult' in node.timed_options:
+        node.timed_options['noresult'] = 'data-no-result'
+    else:
+        node.timed_options['noresult'] = ''
+
+    if 'nofeedback' in node.timed_options:
+        node.timed_options['nofeedback'] = 'data-no-feedback'
+    else:
+        node.timed_options['nofeedback'] = ''
 
     res = TEMPLATE_START % node.timed_options
     self.body.append(res)
@@ -42,7 +54,7 @@ def depart_timed_node(self,node):
 
 #Templates to be formatted by node options
 TEMPLATE_START = '''
-    <ul data-component="timedAssessment" data-time=%(timelimit)s id="%(divid)s">
+    <ul data-component="timedAssessment" %(timelimit)s id="%(divid)s" %(noresult)s %(nofeedback)s>
     '''
 
 TEMPLATE_END = '''</ul>
@@ -52,7 +64,9 @@ class TimedDirective(Directive):
     optional_arguments = 0
     final_argument_whitespace = True
     has_content = True
-    option_spec = {"timelimit":directives.positive_int}
+    option_spec = {"timelimit":directives.positive_int,
+                    "noresult":directives.flag,
+                    "nofeedback":directives.flag}
 
     def run(self):
         """
@@ -60,7 +74,9 @@ class TimedDirective(Directive):
             :param self:
             :return:
             .. timed:: identifier
-                :timelimit: Number of seconds student has to take the timed assessment
+                :timelimit: Number of minutes student has to take the timed assessment--if not provided, no time limit
+                :noresult: Boolean, doesn't display score
+                :nofeedback: Boolean, doesn't display feedback
             ...
             """
         self.assert_has_content() # make sure timed has something in it
