@@ -275,7 +275,7 @@ FITB.prototype.checkFITBStorage = function () {
     this.isCorrectArray = [];
     this.displayFeed = [];
     // Starts chain of functions which ends with feedBack() displaying feedback to user
-	this.evaluateAnswers();
+    this.evaluateAnswers();
     this.renderFITBFeedback();
     var answerInfo = "answer:" + this.given_arr + ":" + (this.isCorrect ? "correct" : "no");
     logBookEvent({"event": "fillb", "act": answerInfo, "div_id": this.divid});
@@ -285,7 +285,7 @@ FITB.prototype.checkFITBStorage = function () {
 };
 
 FITB.prototype.evaluateAnswers = function () {
-	this.given_arr = [];
+    this.given_arr = [];
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
 
@@ -295,17 +295,22 @@ FITB.prototype.evaluateAnswers = function () {
         }
 
         var patt = RegExp(this.correctAnswerArray[i], modifiers);
-        this.isCorrectArray.push(patt.test(given));
-        if ($.inArray(false, this.isCorrectArray) < 0) {
-            this.correct = true;
-        } else if ($.inArray(false, this.isCorrectArray) > 0) {
-            this.correct = false;
+        if (given !== "") {
+            this.isCorrectArray.push(patt.test(given));
+        } else {
+            this.isCorrectArray.push("");
         }
+
         if (!this.isCorrectArray[i]) {
             this.populateDisplayFeed(i, given);
         }
         // store the answer in local storage
         this.given_arr.push(given);
+    }
+    if ($.inArray("", this.isCorrectArray) < 0 && $.inArray(false, this.isCorrectArray) < 0) {
+        this.correct = true;
+    } else if ($.inArray(false, this.isCorrectArray) >= 0 && $.inArray("", this.isCorrectArray) < 0) {
+        this.correct = false;
     }
     localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", this.given_arr.join(";"));
 };
@@ -606,7 +611,7 @@ MultipleChoice.prototype.renderMCFormOpts = function () {
         if (this.timed) {
             var feedBackEach = document.createElement("div");
             feedBackEach.id = this.divid + "_eachFeedback_" + k;
-			feedBackEach.classList.add("eachFeedback");
+            feedBackEach.classList.add("eachFeedback");
             this.optsForm.appendChild(feedBackEach);
         }
     }
@@ -830,14 +835,14 @@ MultipleChoice.prototype.processMCMFSubmission = function () {
     // Called when the submit button is clicked
     this.getSubmittedOpts();
     this.populateMCMFLocalStorage();
-	this.scoreMCMFSubmission();
+    this.scoreMCMFSubmission();
     this.logMCMFsubmission();
     this.provideMCMFFeedback();
     this.enableMCcomparison();
 };
 
 MultipleChoice.prototype.scoreMCMFSubmission = function () {
-	if (this.givenArray[0] == this.correctIndexList[0]) {
+    if (this.givenArray[0] == this.correctIndexList[0]) {
         this.correct = true;
     } else if (this.givenArray[0] != null) { // if given is null then the question wasn"t answered and should be counted as skipped
         this.correct = false;
@@ -1362,22 +1367,20 @@ Timed.prototype.submitTimedProblems = function () {
     for (var k = 0; k < this.FITBArray.length; k++) {
         _this.FITBArray[k].checkFITBStorage();
     }
-	if (!this.showFeedback) {
-		this.hideTimedFeedback();
-	}
+    if (!this.showFeedback) {
+        this.hideTimedFeedback();
+    }
 };
 
 Timed.prototype.hideTimedFeedback = function () {
-	$(".eachFeedback").css("display", "none");
-	for (var i = 0; i < this.FITBArray.length; i++) {
-		var blanks = this.FITBArray[i].blankArray;
-		console.log(blanks);
-		for (var j = 0; j < blanks.length; j++) {
-			$(blanks[j]).removeClass("input-validation-error");
-		}
-		console.log(this.FITBArray[i]);
-		this.FITBArray[i].feedBackDiv.style.display = "none";
-	}
+    $(".eachFeedback").css("display", "none");
+    for (var i = 0; i < this.FITBArray.length; i++) {
+        var blanks = this.FITBArray[i].blankArray;
+        for (var j = 0; j < blanks.length; j++) {
+            $(blanks[j]).removeClass("input-validation-error");
+        }
+        this.FITBArray[i].feedBackDiv.style.display = "none";
+    }
 };
 
 Timed.prototype.checkScore = function () {
@@ -1421,7 +1424,7 @@ Timed.prototype.checkScore = function () {
 };
 
 Timed.prototype.displayScore = function () {
-	if (this.showResults) {
+    if (this.showResults) {
         var scoreString = "Num Correct: " + this.score + " Num Wrong: " + this.incorrect + " Num Skipped: " + this.skipped;
         var numQuestions = this.MCMAList.length + this.MCMFList.length + this.FITBArray.length;
         var percentCorrect = (this.score / numQuestions) * 100;
@@ -1429,7 +1432,7 @@ Timed.prototype.displayScore = function () {
         $(this.scoreDiv).text(scoreString);
         this.scoreDiv.style.display = "block";
     }
-}
+};
 
 /*=======================================================
 === Function that calls the constructors on page load ===
