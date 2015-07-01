@@ -289,6 +289,7 @@ FITB.prototype.evaluateAnswers = function () {
 	var emptyblanks = false;
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
+		console.log(given)
         var modifiers = "";
         if (this.casei) {
             modifiers = "i";
@@ -308,7 +309,7 @@ FITB.prototype.evaluateAnswers = function () {
 		this.given_arr.push(given);
     }
 	if ($.inArray(false, this.isCorrectArray) < 0) {
-	//	this.correct = true;
+		this.correct = true;
 	} else if ($.inArray(false, this.isCorrectArray) >= 0) {
 		this.correct = false;
 	}
