@@ -286,27 +286,35 @@ FITB.prototype.checkFITBStorage = function () {
 
 FITB.prototype.evaluateAnswers = function () {
 	this.given_arr = [];
+	var emptyblanks = false;
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
-
         var modifiers = "";
         if (this.casei) {
             modifiers = "i";
         }
 
         var patt = RegExp(this.correctAnswerArray[i], modifiers);
-        this.isCorrectArray.push(patt.test(given));
-        if ($.inArray(false, this.isCorrectArray) < 0) {
-            this.correct = true;
-        } else if ($.inArray(false, this.isCorrectArray) > 0) {
-            this.correct = false;
-        }
-        if (!this.isCorrectArray[i]) {
-            this.populateDisplayFeed(i, given);
-        }
-        // store the answer in local storage
-        this.given_arr.push(given);
+		if (given != "") {
+			this.isCorrectArray.push(patt.test(given));
+			if (!this.isCorrectArray[i]) {
+				this.populateDisplayFeed(i, given);
+			}
+		} else {
+			this.isCorrectArray.push(null);
+			emptyblanks = true;
+		}
+		// store the answer in local storage
+		this.given_arr.push(given);
     }
+	if ($.inArray(false, this.isCorrectArray) < 0) {
+	//	this.correct = true;
+	} else if ($.inArray(false, this.isCorrectArray) >= 0) {
+		this.correct = false;
+	}
+	if (emptyblanks) {
+		this.correct = null;
+	}
     localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", this.given_arr.join(";"));
 };
 
@@ -1012,7 +1020,7 @@ Timed.prototype.init = function (opts) {
 
     this.timeLimit = 0;
     this.limitedTime = false;
-    if (!isNaN($(this.origElem).data("time"))) {
+    if (!($(this.origElem).data("time") === "")) {
         this.timeLimit = parseInt($(this.origElem).data("time"), 10) * 60; // time in seconds to complete the exam
         this.limitedTime = true;
     }
@@ -1239,7 +1247,11 @@ Timed.prototype.showTime = function () { // displays the timer value
     if (secs < 10) {
         secsString = "0" + secs;
     }
-    var timeString = "Time Remaining    " + minsString + ":" + secsString;
+	var begining = "Time Remaining    ";
+	if (!this.limitedTime) {
+		begining = "Time Taken    ";
+	}
+    var timeString =  begining + minsString + ":" + secsString;
 
     if (mins <= 0 && secs <= 0) {
         timeString = "Finished";
@@ -1371,11 +1383,9 @@ Timed.prototype.hideTimedFeedback = function () {
 	$(".eachFeedback").css("display", "none");
 	for (var i = 0; i < this.FITBArray.length; i++) {
 		var blanks = this.FITBArray[i].blankArray;
-		console.log(blanks);
 		for (var j = 0; j < blanks.length; j++) {
 			$(blanks[j]).removeClass("input-validation-error");
 		}
-		console.log(this.FITBArray[i]);
 		this.FITBArray[i].feedBackDiv.style.display = "none";
 	}
 };
