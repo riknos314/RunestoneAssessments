@@ -5,13 +5,12 @@
     <title></title>
 	<link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/jquery-ui.css"/>
 	<link rel="stylesheet" href="bootstrap.min.css"/>
+	<link rel="stylesheet" href="../css/fitb.css"/>
 	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
 	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
 	<script type="text/javascript" src="../../globalJS/runestoneBase.js"></script>
-	<script type="text/javascript" src="../../globalJS/activecode.js"></script>
 	<script type="text/javascript" src="../../globalJS/bookfuncs.js"></script>
-	<script type="text/javascript" src="../../globalJS/jquery-fix.js"></script>
-	<script type="text/javascript" src="http://www.interactivepython.org/runestone/static/thinkcspy/_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="./bootstrap.min.js"></script>
 	<script type="text/javascript" src="../js/assess.js"></script>
 	<script type="text/javascript">
 		eBookConfig = {};
@@ -27,7 +26,7 @@
 </head>
 
 <body>
-	<ul data-component="timedAssessment" data-time="15" id="timed_1">
+	<ul data-component="timedAssessment" data-time="15" data-no-result data-no-feedback id="timed_1">
 		<ul data-component="multiplechoice"  data-multipleanswers="true" data-timed data-random id="question_1">
 			The Question can go right here.
 			<li data-component="answer" id="123" >Answer One</li>
@@ -76,22 +75,42 @@
 			<li data-component="feedback" for="789">Feedback for Three</li>
 		</ul>
 
-		<p data-component="fillintheblank" data-timed data-casei="false" id="blank-1">
-			Enter a string that contains the letter 'e'!
+	<p data-component="fillintheblank" data-casei="false" data-timed id="fill1412" >
 
-			<span data-answer id="blank-1_answer">e</span>
-			<span data-feedback="regex" id="blank-1_feedback1">.*</span>
-			<span data-feedback="text" for="blank-1_feedback1">There's not an e in that string!</span>
+	        <span data-blank>Give me a string that has an 'e' in it. Now.<span data-answer id="blank2_answer">e</span>
 
-		</p>
-		<p data-component="fillintheblank" data-timed data-casei="false" id="blank-2">
-			Enter a string that contains the letter 'e'!
+	        <span data-feedback="regex" id="feedback1">f</span>
+	        <span data-feedback="text" for="feedback1">You suck</span>
 
-			<span data-answer id="blank-2_answer">e</span>
-			<span data-feedback="regex" id="blank-2_feedback1">.*</span>
-			<span data-feedback="text" for="blank-2_feedback1">There's not an e in that string!</span>
+	        <span data-feedback="regex" id="feedback2">.*</span>
+	        <span data-feedback="text" for="feedback2">There's no e there!</span>
 
-		</p>
+	        </span>
+
+	        <span data-blank>Gimme an f. Please.<span data-answer id="blank12_answer">f</span>
+
+	        <span data-feedback="regex" id="feedback3">e</span>
+	        <span data-feedback="text" for="feedback3">You are a bunch of trash.</span>
+
+	        <span data-feedback="regex" id="feedback4">.*</span>
+	        <span data-feedback="text" for="feedback4">There's no f in that string!</span>
+
+	        </span>
+
+	        <span data-blank>Show me 44!<span data-answer id="blank3_answer">44</span>
+
+	        <span data-feedback="regex" id="feedback5">1</span>
+	        <span data-feedback="text" for="feedback5">nope</span>
+
+	        <span data-feedback="regex" id="feedback6">4</span>
+	        <span data-feedback="text" for="feedback6">close</span>
+
+	        <span data-feedback="regex" id="feedback7">.*</span>
+	        <span data-feedback="text" for="feedback7">Sorry bro</span>
+
+	        </span>
+
+	        </p>
 	</ul>
 
 

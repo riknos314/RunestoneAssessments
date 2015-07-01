@@ -60,3 +60,10 @@ target/
 # Idea Project
 .idea/
 bower_components/
+node_modules/
+
+# Webpack files from build process
+*.woff*
+*.svg
+*.ttf
+*.eot
