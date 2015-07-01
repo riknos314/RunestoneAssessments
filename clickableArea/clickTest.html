@@ -2,27 +2,27 @@
 <html>
 <head lang="en">
 	<meta charset="UTF-8">
-    <title>Isaiah is really cool</title>
-	<link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/jquery-ui.css"/>
-	<link rel="stylesheet" href="../css/bootstrap.min.css"/>
-	<script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
-	<script type="text/javascript" src="../bower_components/jquery-ui/jquery-ui.js"></script>
-	<script type="text/javascript" src="../../globalJS/runestoneBase.js"></script>
-	<script type="text/javascript" src="../../globalJS/activecode.js"></script>
-	<script type="text/javascript" src="../../globalJS/bookfuncs.js"></script>
-	<script type="text/javascript" src="../../globalJS/jquery-fix.js"></script>
-	<script type="text/javascript" src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
-	<script type="text/javascript" src="../js/shortanswer.js"></script>
-	<script type="text/javascript" src="../../reveal/reveal.js"></script>
+    <title>Clickable test</title>
+	<link rel="stylesheet" href="../assess/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="clickable.css"/>
+	<script type="text/javascript" src="../assess/bower_components/jquery/dist/jquery.js"></script>
+	<script type="text/javascript" src="../assess/bower_components/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="../globalJS/runestoneBase.js"></script>
+	<script type="text/javascript" src="../globalJS/bookfuncs.js"></script>
+	<script type="text/javascript" src="clickable.js"></script>
 	<script type="text/javascript" src="http://www.interactivepython.org/runestone/static/thinkcspy/_static/bootstrap-3.0.0/js/bootstrap.min.js"></script>
 
 </head>
 <body>
 
-	<pre data-component="clickablearea">
-      
-
-
-  </pre>
+<pre data-component="clickablearea" id="clickable1">
+<span data-question>Click on all variable assignment statements</span><span data-feedback>Remember, don't think like an idiot. Or like Kirby.</span>def main():
+	<span data-incorrect>print("Hello world")</span>
+	<span data-correct>x = 4</span>
+	for i in range(5):
+		<span data-correct>y = i</span>
+		print(y)
+	<span data-incorrect>return 0</span>
+	</pre>
 
 </html>
