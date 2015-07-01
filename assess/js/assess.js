@@ -81,7 +81,7 @@ FITB.prototype.init = function (opts) {
     this.origElem = orig;
     this.divid = orig.id;
     this.questionArray = [];
-    this.correct = [];
+    this.correct = null;
     this.feedbackArray = [];
     /* this.feedbackArray is an array of array of arrays--each outside element is a blank. Each middle element is a different "incorrect" feedback
     that is tailored for how the question is incorrectly answered. Each inside array contains 2 elements: the regular expression, then text */
@@ -298,7 +298,7 @@ FITB.prototype.evaluateAnswers = function () {
         this.isCorrectArray.push(patt.test(given));
         if ($.inArray(false, this.isCorrectArray) < 0) {
             this.correct = true;
-        } else {
+        } else if ($.inArray(false, this.isCorrectArray) > 0) {
             this.correct = false;
         }
         if (!this.isCorrectArray[i]) {
@@ -775,7 +775,7 @@ MultipleChoice.prototype.scoreMCMASubmission = function () {
     while (correctIndex < this.correctIndexList.length && givenIndex < this.givenArray.length) {
         if (this.givenArray[givenIndex] < this.correctIndexList[correctIndex]) {
             givenIndex++;
-        } else if (this.givenArray[givenIndex] === this.correctIndexList[correctIndex]) {
+        } else if (this.givenArray[givenIndex] == this.correctIndexList[correctIndex]) {
             this.correctCount++;
             givenIndex++;
             correctIndex++;
@@ -830,13 +830,14 @@ MultipleChoice.prototype.processMCMFSubmission = function () {
     // Called when the submit button is clicked
     this.getSubmittedOpts();
     this.populateMCMFLocalStorage();
+	this.scoreMCMFSubmission();
     this.logMCMFsubmission();
     this.provideMCMFFeedback();
     this.enableMCcomparison();
 };
 
 MultipleChoice.prototype.scoreMCMFSubmission = function () {
-    if (this.givenArray[0] == this.correctIndexList[0]) {
+	if (this.givenArray[0] == this.correctIndexList[0]) {
         this.correct = true;
     } else if (this.givenArray[0] != null) { // if given is null then the question wasn"t answered and should be counted as skipped
         this.correct = false;
@@ -974,9 +975,9 @@ MultipleChoice.prototype.feedBackTimedMC = function () {
         $(feedbackobj).text(_this.feedbackList[i]);
         var tmpid = _this.answerList[tmpindex].id;
         if (_this.correctList.indexOf(tmpid) >= 0) {
-            $(feedbackobj).attr({"class": "alert alert-success"});
+            feedbackobj[0].classList.add("alert", "alert-success");
         } else {
-            $(feedbackobj).attr({"class": "alert alert-danger"});
+            feedbackobj[0].classList.add("alert", "alert-danger");
         }
     }
 };
@@ -1352,9 +1353,6 @@ Timed.prototype.finishAssessment = function () {
 
 Timed.prototype.submitTimedProblems = function () {
     var _this = this;
-	if (!this.showFeedback) {
-		this.hideTimedFeedback();
-	}
     for (var i = 0; i < this.MCMAList.length; i++) {
         _this.MCMAList[i].processMCMASubmission();
     }
@@ -1364,10 +1362,22 @@ Timed.prototype.submitTimedProblems = function () {
     for (var k = 0; k < this.FITBArray.length; k++) {
         _this.FITBArray[k].checkFITBStorage();
     }
+	if (!this.showFeedback) {
+		this.hideTimedFeedback();
+	}
 };
 
 Timed.prototype.hideTimedFeedback = function () {
 	$(".eachFeedback").css("display", "none");
+	for (var i = 0; i < this.FITBArray.length; i++) {
+		var blanks = this.FITBArray[i].blankArray;
+		console.log(blanks);
+		for (var j = 0; j < blanks.length; j++) {
+			$(blanks[j]).removeClass("input-validation-error");
+		}
+		console.log(this.FITBArray[i]);
+		this.FITBArray[i].feedBackDiv.style.display = "none";
+	}
 };
 
 Timed.prototype.checkScore = function () {
@@ -1411,7 +1421,7 @@ Timed.prototype.checkScore = function () {
 };
 
 Timed.prototype.displayScore = function () {
-    if (this.showResults) {
+	if (this.showResults) {
         var scoreString = "Num Correct: " + this.score + " Num Wrong: " + this.incorrect + " Num Skipped: " + this.skipped;
         var numQuestions = this.MCMAList.length + this.MCMFList.length + this.FITBArray.length;
         var percentCorrect = (this.score / numQuestions) * 100;
