@@ -76,6 +76,7 @@ DataFile.prototype.createTextArea = function () {     // If data edit is true
     this.textAreaContainer.rows = this.numberOfRows;
     this.textAreaContainer.cols = this.numberOfCols;
     this.textAreaContainer.innerHTML = this.origElem.innerHTML;
+    $(this.textAreaContainer).addClass("datafiletextfield");
 
     $(this.origElem).replaceWith(this.textAreaContainer);
 };

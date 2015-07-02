@@ -28,6 +28,8 @@ def setup(app):
     app.add_javascript('skulpt-stdlib.js')
     app.add_javascript('datafile.js')
 
+    app.add_stylesheet('datafile.css')
+
     app.add_node(DataFileNode, html=(visit_df_node, depart_df_node))
 
     app.connect('doctree-resolved',process_datafile_nodes)

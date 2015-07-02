@@ -283,12 +283,10 @@ FITB.prototype.checkFITBStorage = function () {
         this.compareButton.disabled = false;
     }
 };
-
 FITB.prototype.evaluateAnswers = function () {
     this.given_arr = [];
     for (var i = 0; i < this.children.length; i++) {
         var given = this.blankArray[i].value;
-		console.log(given)
         var modifiers = "";
         if (this.casei) {
             modifiers = "i";
