@@ -29,23 +29,26 @@ function ClickableArea (opts) {
 
 ClickableArea.prototype = new RunestoneBase();
 
-/*========================================
+/*=============================================
 == Initialize basic ClickableArea attributes ==
-========================================*/
+=============================================*/
 ClickableArea.prototype.init = function (opts) {
     RunestoneBase.apply(this, arguments);
     var orig = opts.orig;    // entire <pre> element that will be replaced by new HTML
     this.origElem = orig;
     this.divid = orig.id;
 
-    this.correctArray = [];   // holds the IDs of all correct clickable span elements
-    this.incorrectArray = [];   // holds IDs of all incorrect clickable span elements
-
+    this.correctArray = [];   // holds the IDs of all correct clickable span elements, used for eval
+    this.incorrectArray = [];   // holds IDs of all incorrect clickable span elements, used for eval
 
     this.getQuestion();
     this.getFeedback();
     this.renderNewElements();
 };
+
+/*===========================
+== Update basic attributes ==
+===========================*/
 
 ClickableArea.prototype.getQuestion = function () {
     for (var i = 0; i < this.origElem.childNodes.length; i++) {
@@ -63,10 +66,16 @@ ClickableArea.prototype.getFeedback = function () {
             this.feedback = this.origElem.childNodes[i];
         }
     }
-    if (this.feedback !== "") {
+    if (this.feedback !== "") {  // Get the feedback element out of the <pre> if the user has defined feedback
         $(this.feedback).remove();
     }
 };
+
+/*============================================
+== Check local storage and replace old HTML ==
+==  with our new elements that don't have   ==
+==  data-correct/data-incorrect attributes  ==
+============================================*/
 
 ClickableArea.prototype.renderNewElements = function () {
     this.containerDiv = document.createElement("div");
@@ -77,7 +86,7 @@ ClickableArea.prototype.renderNewElements = function () {
     this.newPre.innerHTML = $(this.origElem).html();
     this.containerDiv.appendChild(this.newPre);
 
-    this.replaceSpanElements();
+    this.checkLocalStorage();
     this.createButtons();
     this.createFeedbackDiv();
 
@@ -85,12 +94,40 @@ ClickableArea.prototype.renderNewElements = function () {
 
 };
 
+ClickableArea.prototype.checkLocalStorage = function () {
+    this.hasStoredAnswers = false;
+    var len = localStorage.length;
+    if (len > 0) {
+        var ex = localStorage.getItem(eBookConfig.email + ":" + this.divid + "-given");
+        if (ex !== null) {
+            this.hasStoredAnswers = true;
+            this.clickedIndexArray = ex.split(";");
+            console.log(this.clickedIndexArray);
+        }
+    }
+    this.replaceSpanElements();
+};
+
 ClickableArea.prototype.replaceSpanElements = function () {
+    this.clickableArray = [];
+    this.clickIndex = 0;   // Index of this.clickedIndexArray that we're checking against
+    this.clickableCounter = 0;  // Index of the current clickable <span>
     for (var i = 0; i < this.newPre.childNodes.length; i++) {
         if ($(this.newPre.childNodes[i]).is("[data-correct]") || $(this.newPre.childNodes[i]).is("[data-incorrect]")) {
-            var replaceSpan = document.createElement("span");
+
+            var replaceSpan = document.createElement("span");   // our new <span> that doesn't have the obvious data-correct/data-incorrect attribute
             replaceSpan.innerHTML = this.newPre.childNodes[i].innerHTML;
             $(replaceSpan).addClass("clickable");
+
+            if (this.hasStoredAnswers) {   // Check if the span we're about to append to the pre was in local storage as clicked via its index
+                if (this.clickedIndexArray[this.clickIndex].toString() === this.clickableCounter.toString()) {
+                    $(replaceSpan).addClass("clickable-clicked");
+                    this.clickIndex++;
+                    if (this.clickIndex === this.clickedIndexArray.length) {   // Stop checking this if the index array is used up
+                        this.hasStoredAnswers = false;
+                    }
+                }
+            }
             replaceSpan.onclick = function () {
                 if ($(this).hasClass("clickable-clicked")) {
                     $(this).removeClass("clickable-clicked");
@@ -104,7 +141,9 @@ ClickableArea.prototype.replaceSpanElements = function () {
             } else {
                 this.incorrectArray.push(replaceSpan);
             }
+            this.clickableArray.push(replaceSpan);
             $(this.newPre.childNodes[i]).replaceWith(replaceSpan);
+            this.clickableCounter++;
         }
     }
 };
@@ -130,7 +169,13 @@ ClickableArea.prototype.createFeedbackDiv = function () {
     this.containerDiv.appendChild(this.feedBackDiv);
 };
 
+/*========================================
+== Evaluation and setting local storage ==
+========================================*/
+
 ClickableArea.prototype.clickableEval = function () {
+    // Evaluation is done by iterating over the correct/incorrect arrays and checking by class
+    this.setLocalStorage();
     this.correct = true;
     for (var i = 0; i < this.correctArray.length; i++) {
         if (!$(this.correctArray[i]).hasClass("clickable-clicked")) {
@@ -144,6 +189,17 @@ ClickableArea.prototype.clickableEval = function () {
     }
 
     this.renderFeedback();
+};
+
+ClickableArea.prototype.setLocalStorage = function () {
+    // Array of the indices of clicked span elements is passed to local storage
+    this.givenIndexArray = [];
+    for (var i = 0; i < this.clickableArray.length; i++) {
+        if ($(this.clickableArray[i]).hasClass("clickable-clicked")) {
+            this.givenIndexArray.push(i);
+        }
+    }
+    localStorage.setItem(eBookConfig.email + ":" + this.divid + "-given", this.givenIndexArray.join(";"));
 };
 
 ClickableArea.prototype.renderFeedback = function () {
