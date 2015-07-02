@@ -94,12 +94,12 @@ class MChoice(Assessment):
         'answer_c':directives.unchanged,
         'answer_d':directives.unchanged,
         'answer_e':directives.unchanged,
+        'correct':directives.unchanged,
         'feedback_a':directives.unchanged,
         'feedback_b':directives.unchanged,
         'feedback_c':directives.unchanged,
         'feedback_d':directives.unchanged,
         'feedback_e':directives.unchanged,
-        'iscode':directives.flag,
         'random':directives.flag,
         'multiple_answers':directives.flag,
         'timed':directives.flag
