@@ -68,7 +68,9 @@ ClickableArea.prototype.getFeedback = function () {
     }
     if (this.feedback !== "") {  // Get the feedback element out of the <pre> if the user has defined feedback
         $(this.feedback).remove();
+        this.feedback = this.feedback.innerHTML;
     }
+    console.log(this.feedback);
 };
 
 /*============================================
@@ -102,7 +104,6 @@ ClickableArea.prototype.checkLocalStorage = function () {
         if (ex !== null) {
             this.hasStoredAnswers = true;
             this.clickedIndexArray = ex.split(";");
-            console.log(this.clickedIndexArray);
         }
     }
     this.replaceSpanElements();
@@ -209,7 +210,7 @@ ClickableArea.prototype.renderFeedback = function () {
         $(this.feedBackDiv).attr("class", "alert alert-success");
 
     } else {
-        $(this.feedBackDiv).html("Incorrect.    " + this.feedback.innerHTML);
+        $(this.feedBackDiv).html("Incorrect.    " + this.feedback);
 
         $(this.feedBackDiv).attr("class", "alert alert-danger");
     }
